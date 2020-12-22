@@ -1,0 +1,5 @@
+main
+mnist
+mnist.o
+mnist.h.gch
+*.pgm
