@@ -1,6 +1,7 @@
 #ifndef _FUNCTION
 #define _FUNCTION
 
+int random_choice(int, int, int, int *);
 int min_function(double *, double *, int);
 int max_function(double *, double *, int);
 int sum_function(double *, double *, int);

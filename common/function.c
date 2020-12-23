@@ -2,6 +2,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
+
+/**
+ * 指定された個数indexを取得する
+ * data_size: 入力配列のサイズ
+ * element_size: 要素のサイズ
+ * batch_size: 必要なindexの個数
+ * index: 取得したindex
+ **/
+int random_choice(int data_size, int element_size, int batch_size, int *index) {
+    int i;
+    int index_range = data_size / element_size;
+
+    srand((unsigned int) time(NULL));
+
+    for (i=0;i<batch_size;i++) {
+        index[i] = rand() % index_range;
+    }
+
+    return 0;
+}
 
 /**
  * 行列の要素の最小値

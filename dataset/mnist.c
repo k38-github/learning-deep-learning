@@ -5,10 +5,10 @@
 
 //#define DEBUG_ON
 
-#define TRAIN_IMAGE "./data/train-images-idx3-ubyte"
-#define TRAIN_LABEL "./data/train-labels-idx1-ubyte"
-#define TEST_IMAGE "./data/t10k-images-idx3-ubyte"
-#define TEST_LABEL "./data/t10k-labels-idx1-ubyte"
+#define TRAIN_IMAGE "../dataset/data/train-images-idx3-ubyte"
+#define TRAIN_LABEL "../dataset/data/train-labels-idx1-ubyte"
+#define TEST_IMAGE "../dataset/data/t10k-images-idx3-ubyte"
+#define TEST_LABEL "../dataset/data/t10k-labels-idx1-ubyte"
 
 
 /**
@@ -226,13 +226,14 @@ int one_hot(char *data, int *one_hot, int size) {
  * 読み込んだ画像データの中身を表示する
  * (28x28に整形して数値を表示する)
  * data: 画像データ
+ * index: 表示するデータの開始位置
  * element: 表示するデータ数
  **/
-int view_train(char *data, int element) {
+int view_train(char *data, int index, int element) {
     int i, j;
 
     for (i=0;i<element;i++) {
-        for (j=784*i;j<784*(i+1);j++) {
+        for (j=(index*784)+784*i;j<(index*784)+784*(i+1);j++) {
             if (j%28 == 0) {
                 printf("\n");
             }
@@ -248,12 +249,13 @@ int view_train(char *data, int element) {
 /**
  * 読み込んだラベルデータの中身を表示する
  * data: ラベルデータ
+ * index: 表示するデータの開始位置
  * element: 表示するデータ数
  **/
-int view_label(char *data, int element) {
+int view_label(char *data, int index, int element) {
     int i;
 
-    for (i=0;i<element;i++) {
+    for (i=index;i<index+element;i++) {
         printf("%2d", (unsigned char)data[i]);
     }
     printf("\n");

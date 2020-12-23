@@ -15,7 +15,7 @@ int main() {
     printf("size: %d\n", size[2]);
     printf("size: %d\n", size[3]);
 
-    view_train(x_train, 3);
+    view_train(x_train, 0, 3);
 
     double *X;
     X = (double *)malloc(sizeof(double) * size[0]);
@@ -33,7 +33,7 @@ int main() {
     }
     printf("\n");
 
-    view_label(t_train, 3);
+    view_label(t_train, 0, 3);
 
     int *T;
     T = (int *)malloc(sizeof(int) * size[1] * 10);
