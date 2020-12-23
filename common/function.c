@@ -345,6 +345,26 @@ int cross_entropy_error(double *y, double *t, double *E , int element) {
 }
 
 /**
+ * 微分する
+ * 引数:double, 返り値:doubleの関数ポインタ
+ * x: 変数
+ * ret: 計算結果
+ **/
+int numerical_diff(double (*func)(double f), double x, double *ret) {
+    double h = pow(10, -4);
+    *ret = (func(x+h) - func(x-h)) / (2*h);
+    return 0;
+}
+
+/**
+ * 関数1
+ * x: 変数
+ **/
+double function_1(double x) {
+    return 0.01*pow(x, 2.0) + 0.1*x;
+}
+
+/**
  * 指定された範囲の配列を生成
  * min: 表示する配列の最小値
  * max: 表示する配列の最大値
@@ -380,7 +400,7 @@ int plot_graph(double *x, double *y, int element) {
 
     gp = popen("gnuplot -persist", "w");
 
-    fprintf(gp, "plot '-' with lines linetype 1 title \"step\"\n");
+    fprintf(gp, "plot '-' with lines linetype 1 title \"\"\n");
 
     for (i=0;i<element;i++) {
         fprintf(gp, "%f %f\n", x[i], y[i]);

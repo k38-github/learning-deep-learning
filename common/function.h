@@ -16,6 +16,8 @@ int softmax_function(double *, double *, int);
 int softmax_measures_function(double *, double *, int);
 int mean_squared_error(double *, double *, double *, int);
 int cross_entropy_error(double *, double *, double *, int);
+int numerical_diff(double (*)(double), double, double *);
+double function_1(double);
 int array_range(double, double, double, double *);
 int plot_graph(double *, double *, int);
 
