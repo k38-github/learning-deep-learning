@@ -365,6 +365,25 @@ double function_1(double x) {
 }
 
 /**
+ * 接線の方程式
+ * y - f(a) = f'(a)(x -a)
+ * y = f'(a)x + (f(a) - f'(a)a)
+ * 引数:double, 返り値:doubleの関数ポインタ
+ * a: 関数f(a)の引数 
+ * x: 接線の方程式の引数
+ * ret: 計算結果
+ **/
+int tangent_line(double (*func)(double f), double a, double x, double *ret) {
+
+    double dx;
+
+    numerical_diff(function_1, a, &dx);
+    *ret = dx*x + (function_1(a) - dx*a);
+
+    return 0;
+}
+
+/**
  * 指定された範囲の配列を生成
  * min: 表示する配列の最小値
  * max: 表示する配列の最大値
@@ -408,6 +427,38 @@ int plot_graph(double *x, double *y, int element) {
 
     fprintf(gp,"e\n");
     pclose(gp);
+
+    return 0;
+}
+
+/**
+ * ファイルポインタを受け取ってグラフをプロットする
+ * 呼び出す側で色々設定する必要がある
+   * FILE *gp;
+   * gp = popen("gnuplot -persist", "w");
+   * fprintf(gp, "set multiplot\n");
+   * fprintf(gp, "set xrange [0.0:20.0]\n");
+   * fprintf(gp, "set yrange [-1.0:6.0]\n");
+   * ...
+   * fprintf(gp, "set nomultiplot\n");
+   * fprintf(gp, "exit\n");
+   * pclose(gp);
+ * gp: ファイルポインタ
+ * x: 表示するx座標の配列
+ * y: 表示するy座標の配列
+ * element: 要素数
+ **/
+
+int plot_graph_f(FILE **gp, double *x, double *y, int element) {
+
+    fprintf(*gp, "plot '-' with lines linetype 1 title \"\"\n");
+
+    int i;
+    for (i=0;i<element;i++) {
+        fprintf(*gp, "%f %f\n", x[i], y[i]);
+    }
+
+    fprintf(*gp, "e\n");
 
     return 0;
 }

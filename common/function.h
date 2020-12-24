@@ -1,6 +1,8 @@
 #ifndef _FUNCTION
 #define _FUNCTION
 
+#include <stdio.h>
+
 int random_choice(int, int, int, int *);
 int min_function(double *, double *, int);
 int max_function(double *, double *, int);
@@ -18,7 +20,9 @@ int mean_squared_error(double *, double *, double *, int);
 int cross_entropy_error(double *, double *, double *, int);
 int numerical_diff(double (*)(double), double, double *);
 double function_1(double);
+int tangent_line(double (*)(double), double, double, double *);
 int array_range(double, double, double, double *);
 int plot_graph(double *, double *, int);
+int plot_graph_f(FILE **, double *, double *, int);
 
 #endif
