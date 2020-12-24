@@ -2,3 +2,5 @@ cross_entropy_error
 mean_squared_error
 random_choice
 differential_test
+partial_diff
+numerical_gradient_test

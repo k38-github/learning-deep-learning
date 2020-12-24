@@ -365,6 +365,22 @@ double function_1(double x) {
 }
 
 /**
+ * 関数2
+ * x: 変数
+ **/
+double function_tmp1(double x) {
+    return x*x + pow(4.0, 2.0);
+}
+
+/**
+ * 関数3
+ * x: 変数
+ **/
+double function_tmp2(double x) {
+    return pow(3.0, 2.0) + x*x;
+}
+
+/**
  * 接線の方程式
  * y - f(a) = f'(a)(x -a)
  * y = f'(a)x + (f(a) - f'(a)a)
@@ -377,8 +393,65 @@ int tangent_line(double (*func)(double f), double a, double x, double *ret) {
 
     double dx;
 
-    numerical_diff(function_1, a, &dx);
-    *ret = dx*x + (function_1(a) - dx*a);
+    numerical_diff(func, a, &dx);
+    *ret = dx*x + (func(a) - dx*a);
+
+    return 0;
+}
+
+/**
+ * 偏微分用の関数
+ * x: 変数
+ * element: 要素数
+ **/
+double function_2(double *x, int element) {
+    int i;
+    double sum;
+
+    for (i=0;i<element;i++) {
+        sum += pow(x[i], 2.0);
+    }
+
+    return sum;
+}
+
+/**
+ * 勾配を求める
+ * 引数:double, int, 返り値:doubleの関数ポインタ
+ * x: 変数
+ * element: 要素数
+ * ret: 計算結果
+ **/
+int numerical_gradient(double (*func)(double *f, int e), double *x, int element, double *ret) {
+    double h = pow(10, -4);
+    double *grad;
+
+    grad = (double *)calloc(element, sizeof(double));
+
+    int idx;
+    double tmp_val;
+    double fxh1, fxh2;
+    for (idx=0;idx<element;idx++) {
+        tmp_val = x[idx];
+        x[idx] = tmp_val + h;
+        fxh1 = func(x, element);
+        printf("fxh1: %f\n", fxh1);
+
+        x[idx] = tmp_val - h;
+        fxh2 = func(x, element);
+        printf("fxh2: %f\n", fxh2);
+
+        grad[idx] = (fxh1 - fxh2) / (2*h);
+        printf("grad: %f\n", grad[idx]);
+
+        x[idx] = tmp_val;
+    }
+
+    for (idx=0;idx<element;idx++) {
+        ret[idx] = grad[idx];
+    }
+
+    free(grad);
 
     return 0;
 }
