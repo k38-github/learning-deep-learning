@@ -5,6 +5,38 @@
 #include <time.h>
 
 /**
+ * 各軸の要素数に応じたグリッドを生成する(2次元)
+ * x: 入力配列
+ * x_size: 要素のサイズ
+ * y: 入力配列
+ * y_size: 取得したindex
+ * X: 生成した配列
+ * Y: 生成した配列
+ **/
+int meshgrid(double *x, int x_size, double *y, int y_size, double *X, double *Y) {
+
+    int i, j, k;
+
+    k = 0;
+    for (i=0;i<y_size;i++) {
+        for (j=0;j<x_size;j++) {
+            X[k] = x[j];
+            k++;
+        }
+    }
+
+    k = 0;
+    for (i=0;i<x_size;i++) {
+        for (j=0;j<y_size;j++) {
+            Y[k] = y[i];
+            k++;
+        }
+    }
+
+    return 0;
+}
+
+/**
  * 指定された個数indexを取得する
  * data_size: 入力配列のサイズ
  * element_size: 要素のサイズ
@@ -50,7 +82,7 @@ int min_function(double *x, double *y, int element) {
  * element: 要素数
  **/
 int max_function(double *x, double *y, int element) {
-    int i = 0;
+    int i;
 
     *y = x[i];
     for(i=0;i<element;i++) {
@@ -237,7 +269,7 @@ int identity_function(double *x, double *y, int element) {
 int softmax_function(double *x, double *y, int element) {
     int i;
     double *e;
-    double sum_exp_a;
+    double sum_exp_a = 0.0;
 
     e = (double *)malloc(sizeof(double)*element);
 
@@ -267,8 +299,8 @@ int softmax_function(double *x, double *y, int element) {
 int softmax_measures_function(double *x, double *y, int element) {
     int i;
     double *e;
-    double c;
-    double sum_exp_a;
+    double c = 0.0;
+    double sum_exp_a = 0.0;
 
 
     max_function(x, &c, element);
@@ -299,7 +331,7 @@ int softmax_measures_function(double *x, double *y, int element) {
 int mean_squared_error(double *y, double *t, double *E, int element) {
     int i;
     double *sum;
-    double sum_a;
+    double sum_a = 0.0;
 
     sum = (double *)malloc(sizeof(double)*element);
 
@@ -327,7 +359,7 @@ int cross_entropy_error(double *y, double *t, double *E , int element) {
     int i;
     double delta = pow(10, -7.0);
     double *sum;
-    double sum_a;
+    double sum_a = 0.0;
 
     sum = (double *)malloc(sizeof(double)*element);
 
@@ -391,7 +423,7 @@ double function_tmp2(double x) {
  **/
 int tangent_line(double (*func)(double f), double a, double x, double *ret) {
 
-    double dx;
+    double dx = 0.0;
 
     numerical_diff(func, a, &dx);
     *ret = dx*x + (func(a) - dx*a);
@@ -406,7 +438,7 @@ int tangent_line(double (*func)(double f), double a, double x, double *ret) {
  **/
 double function_2(double *x, int element) {
     int i;
-    double sum;
+    double sum = 0.0;
 
     for (i=0;i<element;i++) {
         sum += pow(x[i], 2.0);
@@ -428,21 +460,23 @@ int numerical_gradient(double (*func)(double *f, int e), double *x, int element,
 
     grad = (double *)calloc(element, sizeof(double));
 
-    int idx;
-    double tmp_val;
-    double fxh1, fxh2;
+    int idx = 0;
+    double tmp_val = 0.0;
+    double fxh1 = 0.0;
+    double fxh2 = 0.0;
+
     for (idx=0;idx<element;idx++) {
         tmp_val = x[idx];
         x[idx] = tmp_val + h;
         fxh1 = func(x, element);
-        printf("fxh1: %f\n", fxh1);
+        //printf("fxh1: %f\n", fxh1);
 
         x[idx] = tmp_val - h;
         fxh2 = func(x, element);
-        printf("fxh2: %f\n", fxh2);
+        //printf("fxh2: %f\n", fxh2);
 
         grad[idx] = (fxh1 - fxh2) / (2*h);
-        printf("grad: %f\n", grad[idx]);
+        //printf("grad: %f\n", grad[idx]);
 
         x[idx] = tmp_val;
     }

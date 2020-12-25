@@ -7,6 +7,7 @@ int main(void) {
     FILE *gp;
     gp = popen("gnuplot -persist", "w");
     fprintf(gp, "set multiplot\n");
+    fprintf(gp, "set grid\n");
     fprintf(gp, "set xrange [0.0:20.0]\n");
     fprintf(gp, "set yrange [-1.0:6.0]\n");
 
