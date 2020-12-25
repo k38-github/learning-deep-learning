@@ -491,6 +491,41 @@ int numerical_gradient(double (*func)(double *f, int e), double *x, int element,
 }
 
 /**
+ * 勾配法
+ * 引数:double, int, 返り値:doubleの関数ポインタ
+ * init_x: 変数
+ * element: 要素数
+ * lr: 学習率
+ * step_num: ステップ数
+ * ret: 計算結果
+ **/
+int gradient_descent(double (*func)(double *f, int e), double *init_x, int element, double lr, int step_num, double *ret) {
+    double *x;
+    x = (double *)malloc(sizeof(double) * element);
+
+    int i;
+    for (i=0;i<element;i++) {
+        x[i] = init_x[i];
+    }
+
+    double grad[2] = {0};
+    for (i=0;i<step_num;i++) {
+        numerical_gradient(func, x, element, grad);
+        x[0] -= lr * grad[0];
+        x[1] -= lr * grad[1];
+        //printf("%03d: %e %e\n", i+1, x[0], x[1]);
+    }
+
+    for (i=0;i<element;i++) {
+        ret[i] = x[i];
+    }
+
+    free(x);
+
+    return 0;
+}
+
+/**
  * 指定された範囲の配列を生成
  * min: 表示する配列の最小値
  * max: 表示する配列の最大値

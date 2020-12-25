@@ -67,6 +67,7 @@ int main(void) {
 
     fprintf(gp, "e\n");
     fprintf(gp, "exit\n");
+    pclose(gp);
 
     free(x0);
     free(x1);

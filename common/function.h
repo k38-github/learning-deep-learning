@@ -26,6 +26,7 @@ double function_tmp2(double);
 int tangent_line(double (*)(double), double, double, double *);
 double function_2(double *, int);
 int numerical_gradient(double (*)(double *, int), double *, int, double *);
+int gradient_descent(double (*)(double *, int), double *, int, double, int, double *);
 int array_range(double, double, double, double *);
 int plot_graph(double *, double *, int);
 int plot_graph_f(FILE **, double *, double *, int);

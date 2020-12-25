@@ -5,3 +5,5 @@ partial_diff
 numerical_gradient_test
 gradient_1d
 gradient_2d
+gradient_test
+gradient_method
