@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 int meshgrid(double *, int, double *, int, double *, double *);
+int random_randn(double *, int, int);
 int random_choice(int, int, int, int *);
 int min_function(double *, double *, int);
 int max_function(double *, double *, int);
