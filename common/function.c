@@ -36,6 +36,12 @@ int meshgrid(double *x, int x_size, double *y, int y_size, double *X, double *Y)
     return 0;
 }
 
+/**
+ * 標準正規分布(平均:0, 分散:1)に従う乱数を生成する
+ * c: 生成した乱数
+ * row: 行のサイズ(列数)
+ * col: 列のサイズ(行数)
+ **/
 int random_randn(double *c, int row, int col) {
 
     double z = 0.0;
