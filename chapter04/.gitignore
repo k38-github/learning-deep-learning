@@ -1,6 +1,7 @@
 cross_entropy_error
 mean_squared_error
 random_choice
+random_randn
 partial_diff
 numerical_gradient_test
 gradient_1d
