@@ -5,10 +5,10 @@
 
 //#define DEBUG_ON
 
-#define TRAIN_IMAGE "../dataset/data/train-images-idx3-ubyte"
-#define TRAIN_LABEL "../dataset/data/train-labels-idx1-ubyte"
-#define TEST_IMAGE "../dataset/data/t10k-images-idx3-ubyte"
-#define TEST_LABEL "../dataset/data/t10k-labels-idx1-ubyte"
+#define TRAIN_IMAGE "/tmp/data/train-images-idx3-ubyte"
+#define TRAIN_LABEL "/tmp/data/train-labels-idx1-ubyte"
+#define TEST_IMAGE  "/tmp/data/t10k-images-idx3-ubyte"
+#define TEST_LABEL  "/tmp/data/t10k-labels-idx1-ubyte"
 
 
 /**

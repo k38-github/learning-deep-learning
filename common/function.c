@@ -49,7 +49,12 @@ int random_randn(double *c, int row, int col) {
     double mu = 0.0;
     double sigma = 1.0;
 
-    srand((unsigned int) time(NULL));
+    static int flg;
+
+    if(flg == 0) {
+        srand((unsigned int) time(NULL));
+        flg = 1;
+    }
 
     int i, j;
     for (i=0;i<row;i++) {
@@ -75,7 +80,12 @@ int random_choice(int data_size, int element_size, int batch_size, int *index) {
     int i;
     int index_range = data_size / element_size;
 
-    srand((unsigned int) time(NULL));
+    static int flg;
+
+    if(flg == 0) {
+        srand((unsigned int) time(NULL));
+        flg = 1;
+    }
 
     for (i=0;i<batch_size;i++) {
         index[i] = rand() % index_range;
@@ -104,18 +114,56 @@ int min_function(double *x, double *y, int element) {
 }
 
 /**
+ * 行列の要素の最小値のインデックスを返す
+ * x: 入力配列
+ * y: 行列の要素の最小値のインデックス
+ * element: 要素数
+ **/
+int argmin(double *x, int *y, int element) {
+    int i = 0;
+
+    *y = x[i];
+    for(i=0;i<element;i++) {
+        if (x[i] < *y) {
+            *y = i;
+        }
+    }
+
+    return 0;
+}
+
+/**
  * 行列の要素の最大値
  * x: 入力配列
  * y: 行列の要素の最大値
  * element: 要素数
  **/
 int max_function(double *x, double *y, int element) {
-    int i;
+    int i = 0;
 
     *y = x[i];
     for(i=0;i<element;i++) {
         if (*y < x[i]) {
             *y = x[i];
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * 行列の要素の最大値のインデックスを返す
+ * x: 入力配列
+ * y: 行列の要素の最大値のインデックス
+ * element: 要素数
+ **/
+int argmax(double *x, int *y, int element) {
+    int i = 0;
+
+    *y = x[i];
+    for(i=0;i<element;i++) {
+        if (*y < x[i]) {
+            *y = i;
         }
     }
 
@@ -497,14 +545,17 @@ int numerical_gradient(double (*func)(double *f, int e), double *x, int element,
         tmp_val = x[idx];
         x[idx] = tmp_val + h;
         fxh1 = func(x, element);
-        //printf("fxh1: %f\n", fxh1);
+        //printf("fxh1: %.20f\n", fxh1);
 
         x[idx] = tmp_val - h;
         fxh2 = func(x, element);
-        //printf("fxh2: %f\n", fxh2);
+        //printf("fxh2: %.20f\n", fxh2);
 
         grad[idx] = (fxh1 - fxh2) / (2*h);
-        //printf("grad: %f\n", grad[idx]);
+
+        if (idx%100 == 0) {
+            printf("grad: %.20f %d/%d\n", grad[idx], idx, element);
+        }
 
         x[idx] = tmp_val;
     }
