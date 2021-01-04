@@ -209,6 +209,28 @@ int matrix_sum(double **c, double *a, double *b, int row, int col) {
 }
 
 /**
+ * 行列の差
+ * a: 入力行列
+ * b: 入力行列
+ * c: 出力行列
+ * row: 出力行のサイズ
+ * col: 出力列のサイズ
+ **/
+int matrix_diff(double **c, double *a, double *b, int row, int col) {
+    int i, j;
+
+    for(i=0;i<row;i++) {
+        for(j=0;j<col;j++) {
+            (*c)[i*col+j] = 0.0;
+
+            (*c)[i*col+j] = a[i*col+j]-b[i*col+j];
+        }
+    }
+
+    return 0;
+}
+
+/**
  * 行列のドット積
  * a: 入力行列
  * b: 入力行列
@@ -226,13 +248,32 @@ int dot_function(double **c, double *a, double *b, int row, int mid, int col) {
 
             if (mid < col) {
                 for(k=0;k<col;k++) {
-                    (*c)[i*col+j] += a[i*row+k]*b[k*col+j];
+                    (*c)[i*col+j] += a[i*col+k]*b[k*col+j];
                 }
             } else {
                 for(k=0;k<mid;k++) {
-                    (*c)[i*col+j] += a[i*row+k]*b[k*col+j];
+                    (*c)[i*col+j] += a[i*col+k]*b[k*col+j];
                 }
             }
+        }
+    }
+
+    return 0;
+}
+
+/**
+ * 転置行列
+ * b: 出力行列
+ * a: 入力行列
+ * row: 入力行のサイズ
+ * col: 入力列のサイズ
+ **/
+int trans_function(double *b, double *a, int row, int col) {
+    int i, j;
+
+    for(i=0;i<row;i++) {
+        for(j=0;j<col;j++) {
+            b[row * j + i] = a[col * i + j];
         }
     }
 
@@ -295,6 +336,24 @@ int sigmoid_function(double *x, double *y, int element) {
     for (i=0;i<element;i++) {
         y[i] = 1.0 / (1.0 + exp(-1 * x[i]));
         // printf("%f %f\n", x[i], y[i]);
+    }
+
+    return 0;
+}
+
+/**
+ * sigmoid関数の微分
+ * x: sigmoid関数の入力配列
+ * y: sigmoid関数を微分したの出力配列
+ * element: 要素数
+ **/
+int sigmoid_grad_function(double *x, double *y, int element) {
+    int i;
+    double tmp[1] = {0};
+
+    for (i=0;i<element;i++) {
+        sigmoid_function(&x[i], tmp, 1);
+        y[i] = (1.0 - tmp[0]) * tmp[0];
     }
 
     return 0;

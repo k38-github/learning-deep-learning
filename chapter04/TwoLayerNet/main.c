@@ -88,29 +88,32 @@ int main(void) {
             }
         }
 
-        fflush(stdout);
+        gradient(&net, net.x_batch, net.t_batch);
+        //numerical_gradient(loss_W, net.W1, net.input_size * net.hidden_size, net.gW1);
+        //numerical_gradient(loss_W, net.b1, net.hidden_size, net.gb1);
+        //numerical_gradient(loss_W, net.W2, net.hidden_size * net.output_size, net.gW2);
+        //numerical_gradient(loss_W, net.b2, net.output_size, net.gb2);
 
-        //numerical_gradient_all(&net, x_batch, t_batch);
-        numerical_gradient(loss_W, net.W1, net.input_size * net.hidden_size, net.gW1);
-        numerical_gradient(loss_W, net.b1, net.hidden_size, net.gb1);
-        numerical_gradient(loss_W, net.W2, net.hidden_size * net.output_size, net.gW2);
-        numerical_gradient(loss_W, net.b2, net.output_size, net.gb2);
-
+        for (j=0;j<net.input_size * net.hidden_size;j++) {
+            printf("%f\n", net.gW1[j]);
+        }
 
         for (j=0;j<net.input_size * net.hidden_size;j++) {
             net.W1[j] -= learning_rate * net.gW1[j];
         }
-        for (j=0;j<net.hidden_size;j++) {
+        for (j=0;j<net.hidden_size * net.hidden_size;j++) {
             net.b1[j] -= learning_rate * net.gb1[j];
         }
         for (j=0;j<net.hidden_size * net.output_size;j++) {
             net.W2[j] -= learning_rate * net.gW2[j];
         }
-        for (j=0;j<net.output_size;j++) {
+        for (j=0;j<net.output_size * net.output_size;j++) {
             net.b2[j] -= learning_rate * net.gb2[j];
         }
 
-        accuracy(&net);
+        double ret = 0.0;
+        loss(&net, &ret, x_train, 1);
+        // accuracy(&net);
 
     }
 

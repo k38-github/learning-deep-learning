@@ -1,4 +1,4 @@
-all: mean_squared_error cross_entropy_error random_choice gradient_1d partial_diff numerical_gradient_test gradient_2d gradient_test gradient_method random_randn
+all: mean_squared_error cross_entropy_error random_choice gradient_1d partial_diff numerical_gradient_test gradient_2d gradient_test gradient_method random_randn trans
 
 mean_squared_error:
 	gcc -g -o mean_squared_error mean_squared_error.c ../common/function.o -lm
@@ -20,6 +20,8 @@ gradient_method:
 	gcc -g -o gradient_method gradient_method.c ../common/function.o -lm
 random_randn:
 	gcc -g -o random_randn random_randn.c ../common/function.o -lm
+trans:
+	gcc -g -o trans trans.c  ../common/function.o -lm
 
 meanrun:
 	./mean_squared_error
@@ -41,6 +43,8 @@ mrun:
 	./gradient_method
 rrun:
 	./random_randn
+trrun:
+	./trans
 
 clean:
 	rm -rf mean_squared_error
@@ -53,3 +57,4 @@ clean:
 	rm -rf gradient_test
 	rm -rf gradient_method
 	rm -rf random_randn
+	rm -rf trans

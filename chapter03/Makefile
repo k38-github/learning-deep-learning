@@ -1,4 +1,4 @@
-all: main
+all: main dot neural neural02 neural03 softmax_test
 
 main:
 	gcc -g -o main main.c ../common/function.o -lm

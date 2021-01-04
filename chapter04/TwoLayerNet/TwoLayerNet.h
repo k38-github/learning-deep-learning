@@ -23,6 +23,6 @@ int init(TwoLayerNet *, int, int, int, int, double);
 int predict(TwoLayerNet *, double *, double *);
 int loss(TwoLayerNet *, double *, double *, int);
 int accuracy(TwoLayerNet *);
-//int numerical_gradient_all(TwoLayerNet *, double *, double *);
+int gradient(TwoLayerNet *, double *, double *);
 
 #endif
