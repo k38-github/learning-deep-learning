@@ -246,15 +246,10 @@ int dot_function(double **c, double *a, double *b, int row, int mid, int col) {
         for(j=0;j<col;j++) {
             (*c)[i*col+j] = 0.0;
 
-            if (mid < col) {
-                for(k=0;k<col;k++) {
-                    (*c)[i*col+j] += a[i*col+k]*b[k*col+j];
-                }
-            } else {
-                for(k=0;k<mid;k++) {
-                    (*c)[i*col+j] += a[i*col+k]*b[k*col+j];
-                }
+            for(k=0;k<mid;k++) {
+                (*c)[i*col+j] += a[i*mid+k]*b[k*col+j];
             }
+
         }
     }
 
@@ -437,8 +432,8 @@ int softmax_measures_function(double *x, double *y, int element) {
     double c = 0.0;
     double sum_exp_a = 0.0;
 
-
     max_function(x, &c, element);
+
     e = (double *)malloc(sizeof(double)*element);
 
     for (i=0;i<element;i++) {
@@ -611,10 +606,6 @@ int numerical_gradient(double (*func)(double *f, int e), double *x, int element,
         //printf("fxh2: %.20f\n", fxh2);
 
         grad[idx] = (fxh1 - fxh2) / (2*h);
-
-        if (idx%100 == 0) {
-            printf("grad: %.20f %d/%d\n", grad[idx], idx, element);
-        }
 
         x[idx] = tmp_val;
     }

@@ -1,10 +1,13 @@
-all: main dot neural neural02 neural03 softmax_test
+all: main dot dot2 neural neural02 neural03 softmax_test
 
 main:
 	gcc -g -o main main.c ../common/function.o -lm
 
 dot:
 	gcc -g -o dot dot.c ../common/function.o -lm
+
+dot2:
+	gcc -g -o dot2 dot2.c ../common/function.o -lm
 
 neural:
 	gcc -g -o neural_network01 neural_network01.c ../common/function.o -lm
@@ -24,6 +27,7 @@ forward.o:
 clean:
 	rm -rf main
 	rm -rf dot
+	rm -rf dot2
 	rm -rf neural_network01
 	rm -rf neural_network02
 	rm -rf neural_network03
