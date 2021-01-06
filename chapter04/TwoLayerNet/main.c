@@ -4,7 +4,7 @@
 #include "../../common/function.h"
 #include "../../dataset/mnist.h"
 
-//double loss_W(double *, int);
+double loss_W(double *, int);
 
 TwoLayerNet net;
 
@@ -46,9 +46,14 @@ int main(void) {
 
     init(&net, input_size, hidden_size, output_size, batch_size, weight_init_std);
 
+    int acc = 0;
     double *train_loss;
+    double *train_acc;
+    double *test_acc;
     double *iters_num_arr;
     train_loss = (double *)malloc(sizeof(double) * iters_num);
+    train_acc = (double *)malloc(sizeof(double) * iters_num);
+    test_acc = (double *)malloc(sizeof(double) * iters_num);
     iters_num_arr = (double *)malloc(sizeof(double) * iters_num);
 
     int *batch_mask;
@@ -120,7 +125,14 @@ int main(void) {
         train_loss[i] = ret;
         iters_num_arr[i] = i;
 
-        //accuracy(&net);
+
+        // iters_num%600 == 0
+        if (i%(train_size/input_size/batch_size) == 0) {
+            accuracy(&net, &train_acc[acc], x_train, size[0]/input_size, t_train);
+            accuracy(&net, &test_acc[acc], x_test, size[2]/input_size, t_test);
+            printf("train acc, test acc | %f, %f\n", train_acc[i], test_acc[i]);
+            acc++;
+        }
 
     }
 
@@ -147,18 +159,20 @@ int main(void) {
     free(t_test);
 
     free(train_loss);
+    free(train_acc);
+    free(test_acc);
     free(iters_num_arr);
     free(batch_mask);
 
     return 0;
 }
 
-//double loss_W(double *w, int e) {
-//    double ret = 0.0;
-//
-//    loss(&net, &ret, w, e);
-//
-//    return ret;
-//}
+double loss_W(double *w, int e) {
+    double ret = 0.0;
+
+    loss(&net, &ret, net.x_batch, net.t_batch);
+
+    return ret;
+}
 
 

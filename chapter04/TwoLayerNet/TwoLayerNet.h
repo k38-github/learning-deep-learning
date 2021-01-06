@@ -21,9 +21,8 @@ typedef struct TwoLayerNet {
 
 int init(TwoLayerNet *, int, int, int, int, double);
 int predict(TwoLayerNet *, double *, double *, int);
-//int loss(TwoLayerNet *, double *, double *, int);
 int loss(TwoLayerNet *, double *, double *, double *);
-int accuracy(TwoLayerNet *);
+int accuracy(TwoLayerNet *, double *, double *, int, int *);
 int gradient(TwoLayerNet *, double *, double *);
 
 #endif

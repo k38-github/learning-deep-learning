@@ -177,55 +177,56 @@ int loss(TwoLayerNet *this, double *ret, double *x, double *t) {
     return 0;
 }
 
-//int accuracy(TwoLayerNet *this) {
-//    double *y;
-//    y = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
-//
-//    predict(this, y, this->x_batch);
-//
-//    int a = 0;
-//    int b = 0;
-//    double tmp[10] = {0};
-//    int *y_ret;
-//    int *t_ret;
-//    y_ret = (int *)malloc(sizeof(int) * this->batch_size);
-//    t_ret = (int *)malloc(sizeof(int) * this->batch_size);
-//
-//    int i;
-//    for (i=0;i<this->batch_size*this->output_size;i++) {
-//        tmp[a] = y[i];
-//        a++;
-//        if (a%10 == 0) {
-//            argmax(tmp, &y_ret[b], 10);
-//            b++;
-//            a = 0;
-//        }
-//    }
-//
-//    a = 0;
-//    b = 0;
-//    for (i=0;i<this->batch_size*this->output_size;i++) {
-//        tmp[a] = this->t_batch[i];
-//        a++;
-//        if (a%10 == 0) {
-//            argmax(tmp, &t_ret[b], 10);
-//            b++;
-//            a = 0;
-//        }
-//    }
-//
-//    double collect_count = 0.0;
-//
-//    for (i=0;i<this->batch_size;i++) {
-//        if (y_ret[i] == t_ret[i]) {
-//            collect_count++;
-//        }
-//    }
-//
-//    printf("accuracy: %20.18f\n", collect_count/this->batch_size);
-//
-//    return 0;
-//}
+int accuracy(TwoLayerNet *this, double *ret, double *x, int x_size, int *t) {
+    double *y;
+    y = (double *)malloc(sizeof(double) * x_size * this->output_size);
+
+    // x_train (60000x784)
+    // x_test (10000x784)
+    predict(this, y, x, x_size);
+
+    // y (60000x10)/(10000x10)
+    int *y_tmp;
+    y_tmp = (int *)malloc(sizeof(int) * x_size);
+
+    int *t_tmp;
+    t_tmp = (int *)malloc(sizeof(int) * x_size);
+
+    double *arr_tmp;
+    arr_tmp = (double *)malloc(sizeof(double) * this->output_size);
+
+    int i, j;
+    for (i=0;i<x_size;i++) {
+        for (j=0;j<this->output_size;j++) {
+            arr_tmp[j] = y[j+(this->output_size*i)];
+            printf("arr_tmp: %f\n", arr_tmp[j]);
+        }
+        argmax(arr_tmp, &y_tmp[i], this->output_size);
+        printf("y_tmp: %d\n", y_tmp[i]);
+
+        for (j=0;j<this->output_size;j++) {
+            arr_tmp[j] = t[j+(this->output_size*i)];
+        }
+        argmax(arr_tmp, &t_tmp[i], this->output_size);
+        printf("t_tmp: %d\n", t_tmp[i]);
+    }
+
+    int collect_num = 0;
+    for (i=0;i<x_size;i++) {
+        if (y_tmp[i] == t_tmp[i]) {
+            collect_num++;
+        }
+    }
+
+    *ret = (double)collect_num / (double)x_size;
+
+    free(y);
+    free(y_tmp);
+    free(t_tmp);
+    free(arr_tmp);
+
+    return 0;
+}
 
 int gradient(TwoLayerNet *this, double *x, double *t) {
     // forward

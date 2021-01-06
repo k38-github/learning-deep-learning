@@ -121,10 +121,11 @@ int min_function(double *x, double *y, int element) {
  **/
 int argmin(double *x, int *y, int element) {
     int i = 0;
+    double min = 0.0;
 
-    *y = x[i];
     for(i=0;i<element;i++) {
-        if (x[i] < *y) {
+        if (x[i] < min) {
+            min = x[i]
             *y = i;
         }
     }
@@ -159,10 +160,11 @@ int max_function(double *x, double *y, int element) {
  **/
 int argmax(double *x, int *y, int element) {
     int i = 0;
+    double max = 0.0;
 
-    *y = x[i];
     for(i=0;i<element;i++) {
-        if (*y < x[i]) {
+        if (max < x[i]) {
+            max = x[i];
             *y = i;
         }
     }
