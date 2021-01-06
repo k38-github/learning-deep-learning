@@ -15,8 +15,8 @@ int init(TwoLayerNet *this, int input_size, int hidden_size, int output_size, in
         this->W1[i] = weight_init_std * this->W1[i];
     }
 
-    // 100x50
-    this->b1 = (double *)calloc(batch_size * hidden_size, sizeof(double));
+    // 1x50
+    this->b1 = (double *)calloc(hidden_size, sizeof(double));
 
     // 50x10
     this->W2 = (double *)malloc(sizeof(double) * hidden_size * output_size);
@@ -26,8 +26,8 @@ int init(TwoLayerNet *this, int input_size, int hidden_size, int output_size, in
         this->W2[i] = weight_init_std * this->W2[i];
     }
 
-    // 100x10
-    this->b2 = (double *)calloc(batch_size * output_size, sizeof(double));
+    // 1x10
+    this->b2 = (double *)calloc(output_size, sizeof(double));
 
     this->input_size = input_size;
     this->hidden_size = hidden_size;
@@ -37,50 +37,72 @@ int init(TwoLayerNet *this, int input_size, int hidden_size, int output_size, in
 
     // 784x50
     this->gW1 = (double *)malloc(sizeof(double) * input_size * hidden_size);
-    // 100x50
-    this->gb1 = (double *)malloc(sizeof(double) * batch_size * hidden_size);
+    // 1x50
+    this->gb1 = (double *)malloc(sizeof(double) * hidden_size);
     // 50x10
     this->gW2 = (double *)malloc(sizeof(double) * hidden_size * output_size);
-    // 100x10
-    this->gb2 = (double *)malloc(sizeof(double) * batch_size * output_size);
+    // 1x10
+    this->gb2 = (double *)malloc(sizeof(double) * output_size);
 
     return 0;
 };
 
-
-int predict(TwoLayerNet *this, double *y, double *x) {
+int predict(TwoLayerNet *this, double *y, double *x, int x_size) {
     double *a1_dot;
     double *a1;
-    a1_dot = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
-    a1 = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
+    a1_dot = (double *)malloc(sizeof(double) * x_size * this->hidden_size);
+    a1 = (double *)malloc(sizeof(double) * x_size * this->hidden_size);
 
     // a1_dot = x x W1
     // (100x50) = (100x784) x (784x50)
-    dot_function(&a1_dot, x, this->W1, this->batch_size, this->input_size, this->hidden_size);
+    dot_function(&a1_dot, x, this->W1, x_size, this->input_size, this->hidden_size);
+
+    double *broadcast_b1;
+    broadcast_b1 = (double *)malloc(sizeof(double) * x_size * this->hidden_size);
+
+    // broadcast_b1 = b1
+    // (100x50) <- (1x50)
+    int i, j;
+    for (i=0;i<x_size;i++) {
+        for (j=0;j<this->hidden_size;j++) {
+            broadcast_b1[j+(i*this->hidden_size)] = this->b1[j];
+        }
+    }
 
     // a1 = a1_dot + b1
     // (100x50) = (100x50) + (100x50)
-    matrix_sum(&a1, a1_dot, this->b1, this->batch_size, this->hidden_size);
+    matrix_sum(&a1, a1_dot, broadcast_b1, x_size, this->hidden_size);
 
     double *z1;
-    z1 = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
+    z1 = (double *)malloc(sizeof(double) * x_size * this->hidden_size);
 
     // z1 = a1
     // (100x50) = (100x50)
-    sigmoid_function(a1, z1, this->batch_size * this->hidden_size);
+    sigmoid_function(a1, z1, x_size * this->hidden_size);
 
     double *a2_dot;
     double *a2;
-    a2_dot = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
-    a2 = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
+    a2_dot = (double *)malloc(sizeof(double) * x_size * this->output_size);
+    a2 = (double *)malloc(sizeof(double) * x_size * this->output_size);
 
     // a2_dot = z1 x W2
     // (100x10) = (100x50) x (50x10)
-    dot_function(&a2_dot, z1, this->W2, this->batch_size, this->hidden_size, this->output_size);
+    dot_function(&a2_dot, z1, this->W2, x_size, this->hidden_size, this->output_size);
+
+    double *broadcast_b2;
+    broadcast_b2 = (double *)malloc(sizeof(double) * x_size * this->output_size);
+
+    // broadcast_b2 = b2
+    // (100x10) <- (1x10)
+    for (i=0;i<x_size;i++) {
+        for (j=0;j<this->output_size;j++) {
+            broadcast_b2[j+(i*this->output_size)] = this->b2[j];
+        }
+    }
 
     // a2 = a2_bot + b2
     // (100x10) = (100x10) + (100x10)
-    matrix_sum(&a2, a2_dot, this->b2, this->batch_size, this->output_size);
+    matrix_sum(&a2, a2_dot, broadcast_b2, x_size, this->output_size);
 
     double *s;
     s = (double *)malloc(sizeof(double) * this->output_size);
@@ -90,9 +112,7 @@ int predict(TwoLayerNet *this, double *y, double *x) {
 
     // y = s
     // (100x10) = (100x10)
-    int i = 0;
-    int j = 0;
-    for (i=0;i<this->batch_size;i++) {
+    for (i=0;i<x_size;i++) {
         for (j=0;j<this->output_size;j++) {
             s_tmp[j] = a2[j+(this->output_size*i)];
         }
@@ -105,77 +125,107 @@ int predict(TwoLayerNet *this, double *y, double *x) {
 
     free(a1_dot);
     free(a1);
+    free(broadcast_b1);
     free(z1);
     free(a2_dot);
     free(a2);
+    free(broadcast_b2);
     free(s);
     free(s_tmp);
 
     return 0;
 };
 
-int loss(TwoLayerNet *this, double *ret, double *w, int e) {
-
+int loss(TwoLayerNet *this, double *ret, double *x, double *t) {
     double *y;
     y = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
 
-    predict(this, y, this->x_batch);
-    cross_entropy_error(y, this->t_batch, ret , this->output_size);
+    // x (100x784)
+    predict(this, y, x, this->batch_size);
+
+    // y (100x10)
+    // t (100x10)
+    double *y_tmp;
+    y_tmp = (double *)malloc(sizeof(double) * this->output_size);
+
+    double *t_tmp;
+    t_tmp = (double *)malloc(sizeof(double) * this->output_size);
+
+    double *ret_tmp;
+    ret_tmp = (double *)malloc(sizeof(double) * this->batch_size);
+
+    // y = s
+    // (100x10) = (100x10)
+    int i, j;
+    for (i=0;i<this->batch_size;i++) {
+        for (j=0;j<this->output_size;j++) {
+            y_tmp[j] = y[j+(this->output_size*i)];
+            t_tmp[j] = t[j+(this->output_size*i)];
+        }
+        cross_entropy_error(y_tmp, t_tmp, ret, this->output_size);
+        ret_tmp[i] = *ret;
+    }
+
+    sum_function(ret_tmp, ret, this->batch_size);
+    *ret = *ret / this->batch_size;
 
     free(y);
+    free(y_tmp);
+    free(t_tmp);
+    free(ret_tmp);
 
     return 0;
 }
 
-int accuracy(TwoLayerNet *this) {
-    double *y;
-    y = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
-
-    predict(this, y, this->x_batch);
-
-    int a = 0;
-    int b = 0;
-    double tmp[10] = {0};
-    int *y_ret;
-    int *t_ret;
-    y_ret = (int *)malloc(sizeof(int) * this->batch_size);
-    t_ret = (int *)malloc(sizeof(int) * this->batch_size);
-
-    int i;
-    for (i=0;i<this->batch_size*this->output_size;i++) {
-        tmp[a] = y[i];
-        a++;
-        if (a%10 == 0) {
-            argmax(tmp, &y_ret[b], 10);
-            b++;
-            a = 0;
-        }
-    }
-
-    a = 0;
-    b = 0;
-    for (i=0;i<this->batch_size*this->output_size;i++) {
-        tmp[a] = this->t_batch[i];
-        a++;
-        if (a%10 == 0) {
-            argmax(tmp, &t_ret[b], 10);
-            b++;
-            a = 0;
-        }
-    }
-
-    double collect_count = 0.0;
-
-    for (i=0;i<this->batch_size;i++) {
-        if (y_ret[i] == t_ret[i]) {
-            collect_count++;
-        }
-    }
-
-    printf("accuracy: %20.18f\n", collect_count/this->batch_size);
-
-    return 0;
-}
+//int accuracy(TwoLayerNet *this) {
+//    double *y;
+//    y = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
+//
+//    predict(this, y, this->x_batch);
+//
+//    int a = 0;
+//    int b = 0;
+//    double tmp[10] = {0};
+//    int *y_ret;
+//    int *t_ret;
+//    y_ret = (int *)malloc(sizeof(int) * this->batch_size);
+//    t_ret = (int *)malloc(sizeof(int) * this->batch_size);
+//
+//    int i;
+//    for (i=0;i<this->batch_size*this->output_size;i++) {
+//        tmp[a] = y[i];
+//        a++;
+//        if (a%10 == 0) {
+//            argmax(tmp, &y_ret[b], 10);
+//            b++;
+//            a = 0;
+//        }
+//    }
+//
+//    a = 0;
+//    b = 0;
+//    for (i=0;i<this->batch_size*this->output_size;i++) {
+//        tmp[a] = this->t_batch[i];
+//        a++;
+//        if (a%10 == 0) {
+//            argmax(tmp, &t_ret[b], 10);
+//            b++;
+//            a = 0;
+//        }
+//    }
+//
+//    double collect_count = 0.0;
+//
+//    for (i=0;i<this->batch_size;i++) {
+//        if (y_ret[i] == t_ret[i]) {
+//            collect_count++;
+//        }
+//    }
+//
+//    printf("accuracy: %20.18f\n", collect_count/this->batch_size);
+//
+//    return 0;
+//}
 
 int gradient(TwoLayerNet *this, double *x, double *t) {
     // forward
@@ -188,9 +238,21 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
     // (100x50) = (100x784) x (784x50)
     dot_function(&a1_dot, x, this->W1, this->batch_size, this->input_size, this->hidden_size);
 
+    double *broadcast_b1;
+    broadcast_b1 = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
+
+    // broadcast_b1 = b1
+    // (100x50) <- (1x50)
+    int i, j;
+    for (i=0;i<this->batch_size;i++) {
+        for (j=0;j<this->hidden_size;j++) {
+            broadcast_b1[j+(i*this->hidden_size)] = this->b1[j];
+        }
+    }
+
     // a1 = a1_dot + b1 :ok
     // (100x50) = (100x50) + (100x50)
-    matrix_sum(&a1, a1_dot, this->b1, this->batch_size, this->hidden_size);
+    matrix_sum(&a1, a1_dot, broadcast_b1, this->batch_size, this->hidden_size);
 
     double *z1;
     z1 = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
@@ -210,9 +272,20 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
     // 100x10 = (100x50) x (50x10)
     dot_function(&a2_dot, z1, this->W2, this->batch_size, this->hidden_size, this->output_size);
 
+    double *broadcast_b2;
+    broadcast_b2 = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
+
+    // broadcast_b2 = b2
+    // (100x10) <- (1x10)
+    for (i=0;i<this->batch_size;i++) {
+        for (j=0;j<this->output_size;j++) {
+            broadcast_b2[j+(i*this->output_size)] = this->b2[j];
+        }
+    }
+
     // a2_tmp = a2_dot + b2
     // (100x10) = (100x10) + (100x10)
-    matrix_sum(&a2_tmp, a2_dot, this->b2, this->batch_size, this->output_size);
+    matrix_sum(&a2_tmp, a2_dot, broadcast_b2, this->batch_size, this->output_size);
 
     double *s;
     s = (double *)malloc(sizeof(double) * this->output_size);
@@ -222,8 +295,6 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
 
     // a2 = s
     // (100x10) = (100x10)
-    int i = 0;
-    int j = 0;
     for (i=0;i<this->batch_size;i++) {
         for (j=0;j<this->output_size;j++) {
             s_tmp[j] = a2_tmp[j+(this->output_size*i)];
@@ -261,7 +332,7 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
 
     // gW2 = z1_trans x dy
     // (50x10) = (50x100) x (100x10)
-    dot_function(&this->gW2, z1_trans, dy, this->batch_size, this->hidden_size, this->output_size);
+    dot_function(&this->gW2, z1_trans, dy, this->hidden_size, this->batch_size, this->output_size);
 
     double *dy_trans;
     dy_trans = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
@@ -273,9 +344,6 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
     double *dy_row;
     dy_row = (double *)malloc(sizeof(double) * this->batch_size);
 
-    double *gb2_tmp;
-    gb2_tmp = (double *)malloc(sizeof(double) * this->output_size);
-
     double dy_row_sum = 0.0;
 
     for (i=0;i<this->output_size;i++) {
@@ -285,16 +353,8 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
         // dy_row_sum = dy_row[0] + dy_row[1] + ... + dy_row[batch_size -1] +dy_row[batch_size]
         sum_function(dy_row, &dy_row_sum, this->batch_size);
         // 1x10
-        gb2_tmp[i] = dy_row_sum;
+        this->gb2[i] = dy_row_sum;
         dy_row_sum = 0.0;
-    }
-
-    // gb2 = gb2_tmp
-    // (100x10) <- (1x10)
-    for (i=0;i<this->batch_size;i++) {
-        for (j=0;j<this->output_size;j++) {
-            this->gb2[j+(i*this->output_size)] = gb2_tmp[j];
-        }
     }
 
     double *W2_trans;
@@ -347,9 +407,6 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
     double *da1_row;
     da1_row = (double *)malloc(sizeof(double) * this->batch_size);
 
-    double *gb1_tmp;
-    gb1_tmp = (double *)malloc(sizeof(double) * this->hidden_size);
-
     double da1_row_sum = 0.0;
     for (i=0;i<this->hidden_size;i++) {
         for (j=0;j<this->batch_size;j++) {
@@ -359,23 +416,17 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
         // da1_row_sum = da1_row[0] + da1_row[1] + ... + da1_row[batch_size -1] +da1_row[batch_size]
         sum_function(da1_row, &da1_row_sum, this->batch_size);
         // 1x50
-        gb1_tmp[i] = da1_row_sum;
+        this->gb1[i] = da1_row_sum;
         da1_row_sum = 0.0;
-    }
-
-    // gb1 = gb1_tmp
-    // (100x50) <- (1x50)
-    for (i=0;i<this->batch_size;i++) {
-        for (j=0;j<this->hidden_size;j++) {
-            this->gb1[j+(i*this->hidden_size)] = gb1_tmp[j];
-        }
     }
 
     free(a1_dot);
     free(a1);
+    free(broadcast_b1);
     free(a2_dot);
     free(a2_tmp);
     free(a2);
+    free(broadcast_b2);
     free(s);
     free(s_tmp);
     free(dy_diff);
@@ -383,7 +434,6 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
     free(z1_trans);
     free(dy_trans);
     free(dy_row);
-    free(gb2_tmp);
     free(W2_trans);
     free(dz1);
     free(da1_sigmoid);
@@ -391,7 +441,6 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
     free(x_trans);
     free(da1_trans);
     free(da1_row);
-    free(gb1_tmp);
 
     return 0;
 }
