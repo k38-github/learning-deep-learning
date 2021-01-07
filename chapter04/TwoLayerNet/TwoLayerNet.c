@@ -199,26 +199,23 @@ int accuracy(TwoLayerNet *this, double *ret, double *x, int x_size, int *t) {
     for (i=0;i<x_size;i++) {
         for (j=0;j<this->output_size;j++) {
             arr_tmp[j] = y[j+(this->output_size*i)];
-            printf("arr_tmp: %f\n", arr_tmp[j]);
         }
         argmax(arr_tmp, &y_tmp[i], this->output_size);
-        printf("y_tmp: %d\n", y_tmp[i]);
 
         for (j=0;j<this->output_size;j++) {
             arr_tmp[j] = t[j+(this->output_size*i)];
         }
         argmax(arr_tmp, &t_tmp[i], this->output_size);
-        printf("t_tmp: %d\n", t_tmp[i]);
     }
 
     int collect_num = 0;
     for (i=0;i<x_size;i++) {
-        if (y_tmp[i] == t_tmp[i]) {
+        if ((int)y_tmp[i] == (int)t_tmp[i]) {
             collect_num++;
         }
     }
 
-    *ret = (double)collect_num / (double)x_size;
+    *ret = (double)collect_num / x_size;
 
     free(y);
     free(y_tmp);

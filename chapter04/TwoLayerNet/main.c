@@ -48,13 +48,15 @@ int main(void) {
 
     int acc = 0;
     double *train_loss;
+    double *iters_num_arr;
     double *train_acc;
     double *test_acc;
-    double *iters_num_arr;
+    double *acc_count;
     train_loss = (double *)malloc(sizeof(double) * iters_num);
-    train_acc = (double *)malloc(sizeof(double) * iters_num);
-    test_acc = (double *)malloc(sizeof(double) * iters_num);
     iters_num_arr = (double *)malloc(sizeof(double) * iters_num);
+    train_acc = (double *)malloc(sizeof(double) * (iters_num / (train_size/input_size/batch_size)));
+    test_acc = (double *)malloc(sizeof(double) * (iters_num / (train_size/input_size/batch_size)));
+    acc_count = (double *)malloc(sizeof(double) * (iters_num / (train_size/input_size/batch_size)));
 
     int *batch_mask;
     net.x_batch = (double *)malloc(sizeof(double) * batch_size * input_size);
@@ -63,7 +65,7 @@ int main(void) {
 
     int i, j, k, l, m;
     for (i=0;i<iters_num;i++) {
-        printf("iters_num: %d\n", i);
+        //printf("iters_num: %d\n", i);
         random_choice(train_size, input_size, batch_size, batch_mask);
 
         l = 0;
@@ -119,7 +121,7 @@ int main(void) {
 
         double ret = 0.0;
         loss(&net, &ret, net.x_batch, net.t_batch);
-        printf("cross_entropy: %.18f\n", ret);
+        //printf("cross_entropy: %.18f\n", ret);
         fflush(stdout);
 
         train_loss[i] = ret;
@@ -130,13 +132,16 @@ int main(void) {
         if (i%(train_size/input_size/batch_size) == 0) {
             accuracy(&net, &train_acc[acc], x_train, size[0]/input_size, t_train);
             accuracy(&net, &test_acc[acc], x_test, size[2]/input_size, t_test);
-            printf("train acc, test acc | %f, %f\n", train_acc[i], test_acc[i]);
+            printf("train acc, test acc | %f, %f\n", train_acc[acc], test_acc[acc]);
+            acc_count[acc] = acc;
             acc++;
         }
 
     }
 
     plot_graph(iters_num_arr, train_loss, iters_num);
+    plot_graph(acc_count, train_acc, acc);
+    plot_graph(acc_count, test_acc, acc);
 
     free(X_TRAIN);
     free(T_TRAIN);
@@ -159,9 +164,10 @@ int main(void) {
     free(t_test);
 
     free(train_loss);
+    free(iters_num_arr);
     free(train_acc);
     free(test_acc);
-    free(iters_num_arr);
+    free(acc_count);
     free(batch_mask);
 
     return 0;

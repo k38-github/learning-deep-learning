@@ -125,7 +125,7 @@ int argmin(double *x, int *y, int element) {
 
     for(i=0;i<element;i++) {
         if (x[i] < min) {
-            min = x[i]
+            min = x[i];
             *y = i;
         }
     }
