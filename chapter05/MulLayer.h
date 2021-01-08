@@ -6,8 +6,8 @@ typedef struct MulLayer {
     double y;
 }MulLayer;
 
-int init(MulLayer *);
-int forward(MulLayer *, double *, double, double);
-int backward(MulLayer *, double *, double *, double);
+int mullayer_init(MulLayer *);
+int mullayer_forward(MulLayer *, double *, double, double);
+int mullayer_backward(MulLayer *, double *, double *, double);
 
 #endif
