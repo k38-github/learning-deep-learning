@@ -2,3 +2,5 @@ ReluLayer.h.gch
 ReluLayer.o
 SigmoidLayer.h.gch
 SigmoidLayer.o
+AffineLayer.h.gch
+AffineLayer.o
