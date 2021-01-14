@@ -3,25 +3,56 @@
 #include "SoftmaxWithLossLayer.h"
 #include "../function.h"
 
-int softmaxwithlosslayer_init(SoftmaxWithLossLayer *this, int size) {
-    this->y = (double *)malloc(sizeof(double) * size);
-    this->t = (double *)malloc(sizeof(double) * size);
-    this->y_size = size;
+int softmaxwithlosslayer_init(SoftmaxWithLossLayer *this, int col_size, int row_size) {
+    this->y = (double *)malloc(sizeof(double) * col_size * row_size);
+    this->t = (double *)malloc(sizeof(double) * col_size * row_size);
+
+    // col:batch_size row:output_size
+    this->col_size = col_size;
+    this->row_size = row_size;
 
     return 0;
 }
 
 int softmaxwithlosslayer_forward(SoftmaxWithLossLayer *this, double *loss, double *x, double *t) {
+
+    double *s;
+    s = (double *)malloc(sizeof(double) * this->row_size);
+
+    double *s_tmp;
+    s_tmp = (double *)malloc(sizeof(double) * this->row_size);
+
+    // y = s
+    // (100x10) = (100x10)
     int i, j;
-    for (i=0;i<col_size;i++) {
-        for (j=0;j<row_size;j++) {
-            this->x[j+(i*row_size)] = x[j];
+    for (i=0;i<this->col_size;i++) {
+        for (j=0;j<this->row_size;j++) {
+            s_tmp[j] = x[j+(this->row_size*i)];
+        }
+        softmax_measures_function(s_tmp, s, this->row_size);
+
+        for (j=0;j<this->row_size;j++) {
+            this->y[j+(this->row_size*i)] = s[j];
         }
     }
 
+    double *y_tmp;
+    y_tmp = (double *)malloc(sizeof(double) * this->row_size);
 
-    free(W_dot);
-    free(broadcast_b);
+    double *t_tmp;
+    t_tmp = (double *)malloc(sizeof(double) * this->row_size);
+
+    double *ret_tmp;
+    ret_tmp = (double *)malloc(sizeof(double) * this->col_size);
+
+    for (i=0;i<this->col_size;i++) {
+        for (j=0;j<this->row_size;j++) {
+            y_tmp[j] = this->y[j+(this->row_size*i)];
+            t_tmp[j] = t[j+(this->row_size*i)];
+        }
+        cross_entropy_error(y_tmp, t_tmp, loss[i], this->row_size);
+    }
+
 
     return 0;
 }

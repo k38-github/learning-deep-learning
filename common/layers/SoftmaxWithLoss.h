@@ -5,7 +5,8 @@ typedef struct SoftmaxWithLossLayer {
     double *y;
     double *t;
     double *loss;
-    int y_size;
+    int col_size;
+    int row_size;
 }SoftmaxWithLossLayer;
 
 int softmaxwithlosslayer_init(SoftmaxWithLossLayer *, double *, int, int);
