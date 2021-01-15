@@ -3,9 +3,18 @@
 #include "AffineLayer.h"
 #include "../function.h"
 
-int affinelayer_init(AffineLayer *this, int col_size, int row_size) {
+int affinelayer_init(AffineLayer *this, double *W, double *b, int col_size, int row_size) {
     this->W = (double *)malloc(sizeof(double) * col_size * row_size);
     this->b = (double *)calloc(row_size, sizeof(double));
+
+    int i;
+    for (i=0;i<col_size*row_size;i++) {
+        this->W[i] = W[i];
+    }
+
+    for (i=0;i<row_size;i++) {
+        this->b[i] = b[i];
+    }
 
     this->dW = (double *)malloc(sizeof(double) * col_size * row_size);
     this->db = (double *)calloc(row_size, sizeof(double));
@@ -18,7 +27,7 @@ int affinelayer_init(AffineLayer *this, int col_size, int row_size) {
 
 int affinelayer_forward(AffineLayer *this, double *out, double *x, int col_size, int row_size) {
     double *W_dot;
-    W_dot = (double *)malloc(sizeof(double) * this->w_col_size * this->w_row_size);
+    W_dot = (double *)malloc(sizeof(double) * col_size * this->w_row_size);
 
     // W_dot = x x W
     // (N, 3) = (N, 2) x (2x3)
