@@ -4,3 +4,6 @@ AddLayer.o
 AddLayer.h.gch
 buy_apple
 buy_apple_orange
+TwoLayerNet.h.gch
+TwoLayerNet.o
+train_neuralnet

@@ -4,3 +4,5 @@ SigmoidLayer.h.gch
 SigmoidLayer.o
 AffineLayer.h.gch
 AffineLayer.o
+SoftmaxWithLossLayer.h.gch
+SoftmaxWithLossLayer.o

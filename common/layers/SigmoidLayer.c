@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "SigmoidLayer.h"
 #include "../function.h"
 
@@ -12,11 +13,7 @@ int sigmoidlayer_init(SigmoidLayer *this, int size) {
 
 int sigmoidlayer_forward(SigmoidLayer *this, double *out, double *x) {
     sigmoid_function(x, out, this->size);
-
-    int i;
-    for (i=0;i<this->size;i++) {
-        this->out[i] = out[i];
-    }
+    memcpy(this->out, out, sizeof(double) * this->size);
 
     return 0;
 }

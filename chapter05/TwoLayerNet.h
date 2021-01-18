@@ -1,9 +1,9 @@
 #ifndef _TWOLAYERNET
 #define _TWOLAYERNET
 
-#include "../common/layer/AffineLayer.h"
-#include "../common/layer/ReluLayer.h"
-#include "../common/layer/SoftmaxWithLossLayer.h"
+#include "../common/layers/AffineLayer.h"
+#include "../common/layers/ReluLayer.h"
+#include "../common/layers/SoftmaxWithLossLayer.h"
 
 typedef struct Layers {
     AffineLayer Affine1;
@@ -32,7 +32,7 @@ typedef struct TwoLayerNet {
 }TwoLayerNet;
 
 int init(TwoLayerNet *, int, int, int, int, double);
-int predict(TwoLayerNet *, double *, double *, int);
+int predict(TwoLayerNet *, double *, double *);
 int loss(TwoLayerNet *, double *, double *, double *);
 int accuracy(TwoLayerNet *, double *, double *, int, int *);
 int gradient(TwoLayerNet *, double *, double *);

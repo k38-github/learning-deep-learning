@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "AffineLayer.h"
 #include "../function.h"
 
@@ -7,14 +8,8 @@ int affinelayer_init(AffineLayer *this, double *W, double *b, int col_size, int 
     this->W = (double *)malloc(sizeof(double) * col_size * row_size);
     this->b = (double *)calloc(row_size, sizeof(double));
 
-    int i;
-    for (i=0;i<col_size*row_size;i++) {
-        this->W[i] = W[i];
-    }
-
-    for (i=0;i<row_size;i++) {
-        this->b[i] = b[i];
-    }
+    memcpy(this->W, W, sizeof(double) * col_size * row_size);
+    memcpy(this->b, b, sizeof(double) * row_size);
 
     this->dW = (double *)malloc(sizeof(double) * col_size * row_size);
     this->db = (double *)calloc(row_size, sizeof(double));
@@ -30,14 +25,16 @@ int affinelayer_forward(AffineLayer *this, double *out, double *x, int col_size,
     W_dot = (double *)malloc(sizeof(double) * col_size * this->w_row_size);
 
     // W_dot = x x W
-    // (N, 3) = (N, 2) x (2x3)
+    // (100, 50) = (100, 784) x (784, 50)
+    // (100, 10) = (100, 50) x (50, 10)
     dot_function(&W_dot, x, this->W, col_size, this->w_col_size, this->w_row_size);
 
     double *broadcast_b;
     broadcast_b = (double *)malloc(sizeof(double) * col_size * this->w_row_size);
 
     // broadcast_b = b
-    // (N, 3) <- (1, 3)
+    // (100, 50) <- (1, 50)
+    // (100, 10) <- (1, 10)
     int i, j;
     for (i=0;i<col_size;i++) {
         for (j=0;j<this->w_row_size;j++) {
@@ -46,7 +43,8 @@ int affinelayer_forward(AffineLayer *this, double *out, double *x, int col_size,
     }
 
     // out = W_dot + b
-    // (N, 3) = (N, 3) + (N, 3)
+    // (100, 50) = (100, 50) + (100, 50)
+    // (100, 10) = (100, 10) + (100, 10)
     matrix_sum(&out, W_dot, broadcast_b, col_size, this->w_row_size);
 
     this->x = (double *)malloc(sizeof(double) * col_size * row_size);
@@ -58,7 +56,6 @@ int affinelayer_forward(AffineLayer *this, double *out, double *x, int col_size,
             this->x[j+(i*row_size)] = x[j];
         }
     }
-
 
     free(W_dot);
     free(broadcast_b);
@@ -72,11 +69,11 @@ int affinelayer_backward(AffineLayer *this, double *dx, double *dout) {
     W_trans = (double *)malloc(sizeof(double) * this->w_row_size * this->w_col_size);
 
     // W_trans = W.T
-    // (3, 2) <- (2, 3)
+    // (50, 784) <- (784, 50)
     trans_function(W_trans, this->W, this->w_col_size, this->w_row_size);
 
     // dx = dout x W_trans
-    // (N, 2) = (N, 3) x (3, 2)
+    // (100, 784) = (100, 50) x (50, 784)
     dot_function(&dx, dout, W_trans, this->x_col_size, this->w_row_size, this->w_col_size);
 
     double *x_trans;
@@ -88,7 +85,7 @@ int affinelayer_backward(AffineLayer *this, double *dx, double *dout) {
 
     // dW = x_trans x dout
     // (2, 3) = (2, N) x (N, 3)
-    dot_function(&dx, dout, W_trans, this->x_col_size, this->w_row_size, this->w_col_size);
+    dot_function(&this->dW, dout, W_trans, this->x_col_size, this->w_row_size, this->w_col_size);
 
     double *x_row;
     x_row = (double *)malloc(sizeof(double) * this->x_col_size);
@@ -103,9 +100,11 @@ int affinelayer_backward(AffineLayer *this, double *dx, double *dout) {
         // x_row_sum = x_row[0] + x_row[1] + ... + x_row[x_col_size -1] +x_row[x_col_size]
         sum_function(x_row, &x_row_sum, this->x_col_size);
         // 1x3
-        this->b[i] = x_row_sum;
+        this->db[i] = x_row_sum;
         x_row_sum = 0.0;
     }
+
+    memcpy(dx, this->dW, sizeof(double) * this->w_col_size * this->w_row_size);
 
     return 0;
 }
