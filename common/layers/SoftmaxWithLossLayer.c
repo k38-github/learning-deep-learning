@@ -59,12 +59,13 @@ int softmaxwithlosslayer_forward(SoftmaxWithLossLayer *this, double *loss, doubl
     return 0;
 }
 
-int softmaxwithlosslayer_backward(SoftmaxWithLossLayer *this, double *dx, double dout) {
+int softmaxwithlosslayer_backward(SoftmaxWithLossLayer *this, double *dx, double *dout) {
 
     double *dx_diff;
     dx_diff = (double *)malloc(sizeof(double) * this->col_size * this->row_size);
 
     // dx_diff = this->y - this->t
+    // (100, 10) = (100, 10) - (100, 10)
     matrix_diff(&dx_diff, this->y, this->t, this->col_size, this->row_size);
 
     // dx = dx_diff / this->col_size

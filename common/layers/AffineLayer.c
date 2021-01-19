@@ -69,10 +69,12 @@ int affinelayer_backward(AffineLayer *this, double *dx, double *dout) {
     W_trans = (double *)malloc(sizeof(double) * this->w_row_size * this->w_col_size);
 
     // W_trans = W.T
+    // (10, 50) <- (50, 10)
     // (50, 784) <- (784, 50)
     trans_function(W_trans, this->W, this->w_col_size, this->w_row_size);
 
     // dx = dout x W_trans
+    // (100, 50) = (100, 10) x (10, 50)
     // (100, 784) = (100, 50) x (50, 784)
     dot_function(&dx, dout, W_trans, this->x_col_size, this->w_row_size, this->w_col_size);
 
@@ -80,12 +82,14 @@ int affinelayer_backward(AffineLayer *this, double *dx, double *dout) {
     x_trans = (double *)malloc(sizeof(double) * this->x_row_size * this->x_col_size);
 
     // x_trans = x.T
-    // (2, N) <- (N, 2)
+    // (50, 100) <- (100, 50)
+    // (784, 100) <- (100, 784)
     trans_function(x_trans, this->x, this->x_col_size, this->x_row_size);
 
     // dW = x_trans x dout
-    // (2, 3) = (2, N) x (N, 3)
-    dot_function(&this->dW, dout, W_trans, this->x_col_size, this->w_row_size, this->w_col_size);
+    // (50, 10) = (50, 100) x (100, 10)
+    // (784, 50) = (784, 100) x (100, 50)
+    dot_function(&this->dW, dout, W_trans, this->x_row_size, this->x_col_size, this->w_row_size);
 
     double *x_row;
     x_row = (double *)malloc(sizeof(double) * this->x_col_size);
@@ -99,7 +103,7 @@ int affinelayer_backward(AffineLayer *this, double *dx, double *dout) {
         }
         // x_row_sum = x_row[0] + x_row[1] + ... + x_row[x_col_size -1] +x_row[x_col_size]
         sum_function(x_row, &x_row_sum, this->x_col_size);
-        // 1x3
+        // 1x10
         this->db[i] = x_row_sum;
         x_row_sum = 0.0;
     }
