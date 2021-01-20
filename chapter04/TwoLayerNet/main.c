@@ -121,7 +121,7 @@ int main(void) {
 
         double ret = 0.0;
         loss(&net, &ret, net.x_batch, net.t_batch);
-        //printf("cross_entropy: %.18f\n", ret);
+        printf("cross_entropy: %.18f\n", ret);
         fflush(stdout);
 
         train_loss[i] = ret;

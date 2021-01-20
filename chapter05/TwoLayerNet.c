@@ -134,10 +134,9 @@ int loss(TwoLayerNet *this, double *ret, double *x, double *t) {
 
 int gradient(TwoLayerNet *this, double *x, double *t) {
     // forward
-    double *loss_ret;
-    loss_ret = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
+    double loss_ret = 0.0;
 
-    loss(this, loss_ret, x, t);
+    loss(this, &loss_ret, x, t);
 
     // backward
     double *dout;
@@ -167,7 +166,6 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
     memcpy(this->gW2, this->layers.Affine2.dW, sizeof(double) * this->hidden_size * this->output_size);
     memcpy(this->gb2, this->layers.Affine2.db, sizeof(double) * this->output_size);
 
-    free(loss_ret);
     free(dout);
     free(softmaxwithloss_ret);
     free(affine2_ret);

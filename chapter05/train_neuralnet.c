@@ -63,6 +63,7 @@ int main(void) {
 
     int i, j, k, l, m;
     for (i=0;i<iters_num;i++) {
+
         //printf("iters_num: %d\n", i);
         random_choice(train_size, input_size, batch_size, batch_mask);
 
@@ -101,30 +102,25 @@ int main(void) {
         gradient(&net, net.x_batch, net.t_batch);
 
         for (j=0;j<net.input_size * net.hidden_size;j++) {
-            net.W1[j] -= learning_rate * net.gW1[j];
+            net.layers.Affine1.W[j] -= learning_rate * net.gW1[j];
         }
         for (j=0;j<net.hidden_size;j++) {
-            net.b1[j] -= learning_rate * net.gb1[j];
+            net.layers.Affine1.b[j] -= learning_rate * net.gb1[j];
         }
         for (j=0;j<net.hidden_size * net.output_size;j++) {
-            net.W2[j] -= learning_rate * net.gW2[j];
+            net.layers.Affine2.W[j] -= learning_rate * net.gW2[j];
         }
         for (j=0;j<net.output_size;j++) {
-            net.b2[j] -= learning_rate * net.gb2[j];
+            net.layers.Affine2.b[j] -= learning_rate * net.gb2[j];
         }
 
-        //double *loss_ret;
-        //loss_ret = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
-
-        //loss(&net, loss_ret, net.x_batch, net.t_batch);
-
-        //double ret = 0.0;
-        //loss(&net, &ret, net.x_batch, net.t_batch);
-        //printf("cross_entropy: %.18f\n", ret);
+        double ret = 0.0;
+        loss(&net, &ret, net.x_batch, net.t_batch);
+        printf("cross_entropy: %.18f\n", ret);
         fflush(stdout);
 
-        //train_loss[i] = ret;
-        //iters_num_arr[i] = i;
+        train_loss[i] = ret;
+        iters_num_arr[i] = i;
 
 
         // iters_num%600 == 0

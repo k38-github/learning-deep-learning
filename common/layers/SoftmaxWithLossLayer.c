@@ -37,22 +37,7 @@ int softmaxwithlosslayer_forward(SoftmaxWithLossLayer *this, double *loss, doubl
         }
     }
 
-    double *y_tmp;
-    y_tmp = (double *)malloc(sizeof(double) * this->row_size);
-
-    double *t_tmp;
-    t_tmp = (double *)malloc(sizeof(double) * this->row_size);
-
-    double *ret_tmp;
-    ret_tmp = (double *)malloc(sizeof(double) * this->col_size);
-
-    for (i=0;i<this->col_size;i++) {
-        for (j=0;j<this->row_size;j++) {
-            y_tmp[j] = this->y[j+(this->row_size*i)];
-            t_tmp[j] = t[j+(this->row_size*i)];
-        }
-        cross_entropy_error(y_tmp, t_tmp, &loss[i], this->row_size);
-    }
+    cross_entropy_error(this->y, t, loss, this->row_size);
 
     memcpy(this->t, t, sizeof(double) * this->col_size * this->row_size);
 
