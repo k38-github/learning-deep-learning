@@ -89,26 +89,37 @@ int affinelayer_backward(AffineLayer *this, double *dx, double *dout) {
     // dW = x_trans x dout
     // (50, 10) = (50, 100) x (100, 10)
     // (784, 50) = (784, 100) x (100, 50)
-    dot_function(&this->dW, dout, W_trans, this->x_row_size, this->x_col_size, this->w_row_size);
+    dot_function(&this->dW, x_trans, dout, this->x_row_size, this->x_col_size, this->w_row_size);
 
-    double *x_row;
-    x_row = (double *)malloc(sizeof(double) * this->x_col_size);
+    double *dout_trans;
+    dout_trans = (double *)malloc(sizeof(double) * this->w_row_size * this->x_col_size);
 
-    double x_row_sum = 0.0;
+    // dout_trans
+    // (10, 100) <- (100, 10)
+    // (50, 100) <- (100, 50)
+    trans_function(dout_trans, dout, this->x_col_size, this->w_row_size);
+
+    double *dout_row;
+    dout_row = (double *)malloc(sizeof(double) * this->x_col_size);
+
+    double dout_row_sum = 0.0;
 
     int i, j;
-    for (i=0;i<this->x_row_size;i++) {
+    for (i=0;i<this->w_row_size;i++) {
         for (j=0;j<this->x_col_size;j++) {
-            x_row[j] = x_trans[j+(this->x_col_size*i)];
+            dout_row[j] = dout_trans[j+(this->x_col_size*i)];
         }
-        // x_row_sum = x_row[0] + x_row[1] + ... + x_row[x_col_size -1] +x_row[x_col_size]
-        sum_function(x_row, &x_row_sum, this->x_col_size);
+        // dout_row_sum = dout_row[0] + dout_row[1] + ... + dout_row[dout_col_size -1] +dout_row[dout_col_size]
+        sum_function(dout_row, &dout_row_sum, this->x_col_size);
         // 1x10
-        this->db[i] = x_row_sum;
-        x_row_sum = 0.0;
+        this->db[i] = dout_row_sum;
+        dout_row_sum = 0.0;
     }
 
-    memcpy(dx, this->dW, sizeof(double) * this->w_col_size * this->w_row_size);
+    free(W_trans);
+    free(x_trans);
+    free(dout_trans);
+    free(dout_row);
 
     return 0;
 }

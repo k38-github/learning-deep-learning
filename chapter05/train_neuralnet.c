@@ -113,13 +113,18 @@ int main(void) {
             net.b2[j] -= learning_rate * net.gb2[j];
         }
 
-        double ret = 0.0;
-        loss(&net, &ret, net.x_batch, net.t_batch);
+        //double *loss_ret;
+        //loss_ret = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
+
+        //loss(&net, loss_ret, net.x_batch, net.t_batch);
+
+        //double ret = 0.0;
+        //loss(&net, &ret, net.x_batch, net.t_batch);
         //printf("cross_entropy: %.18f\n", ret);
         fflush(stdout);
 
-        train_loss[i] = ret;
-        iters_num_arr[i] = i;
+        //train_loss[i] = ret;
+        //iters_num_arr[i] = i;
 
 
         // iters_num%600 == 0

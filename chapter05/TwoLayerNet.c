@@ -148,9 +148,14 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
 
     dout = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
     softmaxwithloss_ret = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
-    affine2_ret = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
+    affine2_ret = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
     relu1_ret = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
-    affine1_ret = (double *)malloc(sizeof(double) * this->input_size * this->hidden_size);
+    affine1_ret = (double *)malloc(sizeof(double) * this->batch_size * this->input_size);
+
+    int i;
+    for(i=0;i<this->batch_size*this->output_size;i++) {
+        dout[i] = 1;
+    }
 
     softmaxwithlosslayer_backward(&this->layers.SoftmaxWithLoss, softmaxwithloss_ret, dout);
     affinelayer_backward(&this->layers.Affine2, affine2_ret, softmaxwithloss_ret);
@@ -162,6 +167,8 @@ int gradient(TwoLayerNet *this, double *x, double *t) {
     memcpy(this->gW2, this->layers.Affine2.dW, sizeof(double) * this->hidden_size * this->output_size);
     memcpy(this->gb2, this->layers.Affine2.db, sizeof(double) * this->output_size);
 
+    free(loss_ret);
+    free(dout);
     free(softmaxwithloss_ret);
     free(affine2_ret);
     free(relu1_ret);
