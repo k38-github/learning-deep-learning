@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "TwoLayerNet.h"
 #include "../common/function.h"
 #include "../dataset/mnist.h"
@@ -102,25 +103,30 @@ int main(void) {
         gradient(&net, net.x_batch, net.t_batch);
 
         for (j=0;j<net.input_size * net.hidden_size;j++) {
-            net.layers.Affine1.W[j] -= learning_rate * net.gW1[j];
+            net.W1[j] -= learning_rate * net.gW1[j];
         }
         for (j=0;j<net.hidden_size;j++) {
-            net.layers.Affine1.b[j] -= learning_rate * net.gb1[j];
+            net.b1[j] -= learning_rate * net.gb1[j];
         }
         for (j=0;j<net.hidden_size * net.output_size;j++) {
-            net.layers.Affine2.W[j] -= learning_rate * net.gW2[j];
+            net.W2[j] -= learning_rate * net.gW2[j];
         }
         for (j=0;j<net.output_size;j++) {
-            net.layers.Affine2.b[j] -= learning_rate * net.gb2[j];
+            net.b2[j] -= learning_rate * net.gb2[j];
         }
+
+        memcpy(net.layers.Affine1.W, net.W1, sizeof(double) * net.input_size * net.hidden_size);
+        memcpy(net.layers.Affine1.b, net.b1, sizeof(double) * net.hidden_size);
+        memcpy(net.layers.Affine2.W, net.W2, sizeof(double) * net.hidden_size * net.output_size);
+        memcpy(net.layers.Affine2.b, net.b2, sizeof(double) * net.output_size);
 
         double ret = 0.0;
         loss(&net, &ret, net.x_batch, net.t_batch);
         printf("cross_entropy: %.18f\n", ret);
         fflush(stdout);
 
-        train_loss[i] = ret;
-        iters_num_arr[i] = i;
+        //train_loss[i] = ret;
+        //iters_num_arr[i] = i;
 
 
         // iters_num%600 == 0
