@@ -20,6 +20,16 @@ int affinelayer_init(AffineLayer *this, double *W, double *b, int col_size, int 
     return 0;
 }
 
+int affinelayer_free(AffineLayer *this) {
+
+    free(this->W);
+    free(this->b);
+    free(this->dW);
+    free(this->db);
+
+    return 0;
+}
+
 int affinelayer_forward(AffineLayer *this, double *out, double *x, int col_size, int row_size) {
     double *W_dot;
     W_dot = (double *)malloc(sizeof(double) * col_size * this->w_row_size);

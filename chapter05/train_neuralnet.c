@@ -125,24 +125,27 @@ int main(void) {
         printf("cross_entropy: %.18f\n", ret);
         fflush(stdout);
 
-        //train_loss[i] = ret;
-        //iters_num_arr[i] = i;
-
+        train_loss[i] = ret;
+        iters_num_arr[i] = i;
 
         // iters_num%600 == 0
         //if (i%(train_size/input_size/batch_size) == 0) {
-        //    accuracy(&net, &train_acc[acc], x_train, size[0]/input_size, t_train);
-        //    accuracy(&net, &test_acc[acc], x_test, size[2]/input_size, t_test);
+        //    net.batch_size = size[0]/input_size;
+        //    accuracy(&net, &train_acc[acc], x_train, t_train);
+        //    net.batch_size = size[2]/input_size;
+        //    accuracy(&net, &test_acc[acc], x_test, t_test);
         //    printf("train acc, test acc | %f, %f\n", train_acc[acc], test_acc[acc]);
         //    acc_count[acc] = acc;
         //    acc++;
         //}
 
+        //net.batch_size = batch_size;
+
     }
 
-    //plot_graph(iters_num_arr, train_loss, iters_num);
-    //plot_graph(acc_count, train_acc, acc);
-    //plot_graph(acc_count, test_acc, acc);
+    plot_graph(iters_num_arr, train_loss, iters_num);
+    plot_graph(acc_count, train_acc, acc);
+    plot_graph(acc_count, test_acc, acc);
 
     free(X_TRAIN);
     free(T_TRAIN);
@@ -170,6 +173,8 @@ int main(void) {
     free(test_acc);
     free(acc_count);
     free(batch_mask);
+
+    layers_free(&net);
 
     return 0;
 }

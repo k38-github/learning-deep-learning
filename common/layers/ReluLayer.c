@@ -9,6 +9,13 @@ int relulayer_init(ReluLayer *this, int size) {
     return 0;
 }
 
+int relulayer_free(ReluLayer *this) {
+
+    free(this->mask);
+
+    return 0;
+}
+
 int relulayer_forward(ReluLayer *this, double *out, double *x) {
     int i;
     for (i=0;i<this->size;i++) {

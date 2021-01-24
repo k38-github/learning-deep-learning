@@ -55,6 +55,16 @@ int init(TwoLayerNet *this, int input_size, int hidden_size, int output_size, in
     return 0;
 }
 
+int layers_free(TwoLayerNet *this) {
+    affinelayer_free(&this->layers.Affine1);
+    relulayer_free(&this->layers.Relu1);
+    affinelayer_free(&this->layers.Affine2);
+    softmaxwithlosslayer_free(&this->layers.SoftmaxWithLoss);
+
+    return 0;
+
+}
+
 int predict(TwoLayerNet *this, double *y, double *x) {
 
     double *affine1_ret;
@@ -87,50 +97,50 @@ int loss(TwoLayerNet *this, double *ret, double *x, double *t) {
     return 0;
 }
 
-//int accuracy(TwoLayerNet *this, double *ret, double *x, int x_size, int *t) {
-//    double *y;
-//    y = (double *)malloc(sizeof(double) * x_size * this->output_size);
-//
-//    predict(this, y, x, x_size);
-//
-//    int *y_tmp;
-//    y_tmp = (int *)malloc(sizeof(int) * x_size);
-//
-//    int *t_tmp;
-//    t_tmp = (int *)malloc(sizeof(int) * x_size);
-//
-//    double *arr_tmp;
-//    arr_tmp = (double *)malloc(sizeof(double) * this->output_size);
-//
-//    int i, j;
-//    for (i=0;i<x_size;i++) {
-//        for (j=0;j<this->output_size;j++) {
-//            arr_tmp[j] = y[j+(this->output_size*i)];
-//        }
-//        argmax(arr_tmp, &y_tmp[i], this->output_size);
-//
-//        for (j=0;j<this->output_size;j++) {
-//            arr_tmp[j] = t[j+(this->output_size*i)];
-//        }
-//        argmax(arr_tmp, &t_tmp[i], this->output_size);
-//    }
-//
-//    int collect_num = 0;
-//    for (i=0;i<x_size;i++) {
-//        if ((int)y_tmp[i] == (int)t_tmp[i]) {
-//            collect_num++;
-//        }
-//    }
-//
-//    *ret = (double)collect_num / x_size;
-//
-//    free(y);
-//    free(y_tmp);
-//    free(t_tmp);
-//    free(arr_tmp);
-//
-//    return 0;
-//}
+int accuracy(TwoLayerNet *this, double *ret, double *x, int *t) {
+    double *y;
+    y = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
+
+    predict(this, y, x);
+
+    int *y_tmp;
+    y_tmp = (int *)malloc(sizeof(int) * this->batch_size);
+
+    int *t_tmp;
+    t_tmp = (int *)malloc(sizeof(int) * this->batch_size);
+
+    double *arr_tmp;
+    arr_tmp = (double *)malloc(sizeof(double) * this->output_size);
+
+    int i, j;
+    for (i=0;i<this->batch_size;i++) {
+        for (j=0;j<this->output_size;j++) {
+            arr_tmp[j] = y[j+(this->output_size*i)];
+        }
+        argmax(arr_tmp, &y_tmp[i], this->output_size);
+
+        for (j=0;j<this->output_size;j++) {
+            arr_tmp[j] = t[j+(this->output_size*i)];
+        }
+        argmax(arr_tmp, &t_tmp[i], this->output_size);
+    }
+
+    int collect_num = 0;
+    for (i=0;i<this->batch_size;i++) {
+        if ((int)y_tmp[i] == (int)t_tmp[i]) {
+            collect_num++;
+        }
+    }
+
+    *ret = (double)collect_num / this->batch_size;
+
+    free(y);
+    free(y_tmp);
+    free(t_tmp);
+    free(arr_tmp);
+
+    return 0;
+}
 
 int gradient(TwoLayerNet *this, double *x, double *t) {
     // forward

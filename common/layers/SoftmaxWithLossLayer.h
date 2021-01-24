@@ -10,6 +10,7 @@ typedef struct SoftmaxWithLossLayer {
 }SoftmaxWithLossLayer;
 
 int softmaxwithlosslayer_init(SoftmaxWithLossLayer *, int, int);
+int softmaxwithlosslayer_free(SoftmaxWithLossLayer *);
 int softmaxwithlosslayer_forward(SoftmaxWithLossLayer *, double *, double *, double *);
 int softmaxwithlosslayer_backward(SoftmaxWithLossLayer *, double *, double *);
 

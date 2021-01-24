@@ -7,6 +7,7 @@ typedef struct ReluLayer {
 }ReluLayer;
 
 int relulayer_init(ReluLayer *, int);
+int relulayer_free(ReluLayer *);
 int relulayer_forward(ReluLayer *, double *, double *);
 int relulayer_backward(ReluLayer *, double *, double *);
 

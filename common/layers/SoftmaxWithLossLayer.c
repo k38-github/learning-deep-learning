@@ -15,6 +15,14 @@ int softmaxwithlosslayer_init(SoftmaxWithLossLayer *this, int col_size, int row_
     return 0;
 }
 
+int softmaxwithlosslayer_free(SoftmaxWithLossLayer *this) {
+
+    free(this->y);
+    free(this->t);
+
+    return 0;
+}
+
 int softmaxwithlosslayer_forward(SoftmaxWithLossLayer *this, double *loss, double *x, double *t) {
 
     double *s;

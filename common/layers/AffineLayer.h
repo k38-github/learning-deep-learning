@@ -14,6 +14,7 @@ typedef struct AffineLayer {
 }AffineLayer;
 
 int affinelayer_init(AffineLayer *, double *, double *, int, int);
+int affinelayer_free(AffineLayer *);
 int affinelayer_forward(AffineLayer *, double *, double *, int, int);
 int affinelayer_backward(AffineLayer *, double *, double *);
 
