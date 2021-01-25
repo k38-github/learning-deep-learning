@@ -61,11 +61,7 @@ int affinelayer_forward(AffineLayer *this, double *out, double *x, int col_size,
     this->x_col_size = col_size;
     this->x_row_size = row_size;
 
-    for (i=0;i<col_size;i++) {
-        for (j=0;j<row_size;j++) {
-            this->x[j+(i*row_size)] = x[j];
-        }
-    }
+    memcpy(this->x, x, sizeof(double) * col_size * row_size);
 
     free(W_dot);
     free(broadcast_b);
