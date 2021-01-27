@@ -17,6 +17,15 @@ int relulayer_free(ReluLayer *this) {
 }
 
 int relulayer_forward(ReluLayer *this, double *out, double *x) {
+    int *tmp;
+
+    if ((tmp = (int *)realloc(this->mask, sizeof(int) * this->size)) == NULL) {
+        printf("Unable to allocate memory during realloc\n");
+        exit(EXIT_FAILURE);
+    } else {
+        this->mask = tmp;
+    }
+
     int i;
     for (i=0;i<this->size;i++) {
         if (x[i] <= 0) {

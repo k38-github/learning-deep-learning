@@ -101,6 +101,8 @@ int accuracy(TwoLayerNet *this, double *ret, double *x, int *t) {
     double *y;
     y = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
 
+    // x_train (60000, 784)
+    // x_test  (10000, 784)
     predict(this, y, x);
 
     int *y_tmp;

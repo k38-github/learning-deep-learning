@@ -131,15 +131,20 @@ int main(void) {
         // iters_num%600 == 0
         if (i%(train_size/input_size/batch_size) == 0) {
             net.batch_size = size[0]/input_size;
+            net.layers.Relu1.size = net.batch_size * net.hidden_size;
             accuracy(&net, &train_acc[acc], x_train, t_train);
+
             net.batch_size = size[2]/input_size;
+            net.layers.Relu1.size = net.batch_size * net.hidden_size;
             accuracy(&net, &test_acc[acc], x_test, t_test);
+
             printf("train acc, test acc | %f, %f\n", train_acc[acc], test_acc[acc]);
             acc_count[acc] = acc;
             acc++;
         }
 
         net.batch_size = batch_size;
+        net.layers.Relu1.size = net.batch_size * net.hidden_size;
 
     }
 

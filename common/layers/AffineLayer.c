@@ -17,6 +17,8 @@ int affinelayer_init(AffineLayer *this, double *W, double *b, int col_size, int 
     this->w_col_size = col_size;
     this->w_row_size = row_size;
 
+    this->x = (double *)malloc(sizeof(double) * col_size * row_size);
+
     return 0;
 }
 
@@ -57,7 +59,14 @@ int affinelayer_forward(AffineLayer *this, double *out, double *x, int col_size,
     // (100, 10) = (100, 10) + (100, 10)
     matrix_sum(&out, W_dot, broadcast_b, col_size, this->w_row_size);
 
-    this->x = (double *)malloc(sizeof(double) * col_size * row_size);
+    double *tmp;
+
+    if ((tmp = (double *)realloc(this->x, sizeof(double) * col_size * row_size)) == NULL) {
+        printf("Unable to allocate memory during realloc\n");
+        exit(EXIT_FAILURE);
+    } else {
+        this->x = tmp;
+    }
     this->x_col_size = col_size;
     this->x_row_size = row_size;
 
