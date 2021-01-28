@@ -4,3 +4,9 @@ Momentum.h.gch
 Momentum.o
 Nesterov.h.gch
 Nesterov.o
+RMSprop.h.gch
+RMSprop.o
+AdaGrad.h.gch
+AdaGrad.o
+Adam.h.gch
+Adam.o

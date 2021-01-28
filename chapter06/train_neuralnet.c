@@ -6,6 +6,9 @@
 #include "../common/optimizer/SGD.h"
 #include "../common/optimizer/Momentum.h"
 #include "../common/optimizer/Nesterov.h"
+#include "../common/optimizer/AdaGrad.h"
+#include "../common/optimizer/RMSprop.h"
+#include "../common/optimizer/Adam.h"
 #include "../dataset/mnist.h"
 
 TwoLayerNet net;
@@ -68,10 +71,64 @@ int main(void) {
     // vb2 = (double *)calloc(output_size, sizeof(double));
 
     // Nesterov
-    double learning_rate = 0.01;
-    double momentum = 0.9;
-    Nesterov optimizer;
-    nesterov_init(&optimizer, learning_rate, momentum);
+    // double learning_rate = 0.01;
+    // double momentum = 0.9;
+    // Nesterov optimizer;
+    // nesterov_init(&optimizer, learning_rate, momentum);
+
+    // double *vW1;
+    // double *vb1;
+    // double *vW2;
+    // double *vb2;
+    // vW1 = (double *)calloc(input_size * hidden_size, sizeof(double));
+    // vb1 = (double *)calloc(hidden_size, sizeof(double));
+    // vW2 = (double *)calloc(hidden_size * output_size, sizeof(double));
+    // vb2 = (double *)calloc(output_size, sizeof(double));
+
+    // AdaGrad
+    // double learning_rate = 0.01;
+    // AdaGrad optimizer;
+    // adagrad_init(&optimizer, learning_rate);
+
+    // double *hW1;
+    // double *hb1;
+    // double *hW2;
+    // double *hb2;
+    // hW1 = (double *)calloc(input_size * hidden_size, sizeof(double));
+    // hb1 = (double *)calloc(hidden_size, sizeof(double));
+    // hW2 = (double *)calloc(hidden_size * output_size, sizeof(double));
+    // hb2 = (double *)calloc(output_size, sizeof(double));
+
+    // RMSprop
+    // double learning_rate = 0.01;
+    // double decay_rate = 0.99;
+    // RMSprop optimizer;
+    // rmsprop_init(&optimizer, learning_rate, decay_rate);
+
+    // double *hW1;
+    // double *hb1;
+    // double *hW2;
+    // double *hb2;
+    // hW1 = (double *)calloc(input_size * hidden_size, sizeof(double));
+    // hb1 = (double *)calloc(hidden_size, sizeof(double));
+    // hW2 = (double *)calloc(hidden_size * output_size, sizeof(double));
+    // hb2 = (double *)calloc(output_size, sizeof(double));
+
+    // Adam
+    double learning_rate = 0.001;
+    double beta1 = 0.9;
+    double beta2 = 0.999;
+    Adam optimizer;
+    adam_init(&optimizer, learning_rate, beta1, beta2);
+
+    double *mW1;
+    double *mb1;
+    double *mW2;
+    double *mb2;
+    mW1 = (double *)calloc(input_size * hidden_size, sizeof(double));
+    mb1 = (double *)calloc(hidden_size, sizeof(double));
+    mW2 = (double *)calloc(hidden_size * output_size, sizeof(double));
+    mb2 = (double *)calloc(output_size, sizeof(double));
 
     double *vW1;
     double *vb1;
@@ -81,7 +138,6 @@ int main(void) {
     vb1 = (double *)calloc(hidden_size, sizeof(double));
     vW2 = (double *)calloc(hidden_size * output_size, sizeof(double));
     vb2 = (double *)calloc(output_size, sizeof(double));
-
 
     int acc = 0;
     double *train_loss;
@@ -153,10 +209,28 @@ int main(void) {
         // momentum_update(&optimizer, net.b2, net.gb2, vb2, net.output_size);
 
         // Nesterov
-        nesterov_update(&optimizer, net.W1, net.gW1, vW1, net.input_size * net.hidden_size);
-        nesterov_update(&optimizer, net.b1, net.gb1, vb1, net.hidden_size);
-        nesterov_update(&optimizer, net.W2, net.gW2, vW2, net.hidden_size * net.output_size);
-        nesterov_update(&optimizer, net.b2, net.gb2, vb2, net.output_size);
+        // nesterov_update(&optimizer, net.W1, net.gW1, vW1, net.input_size * net.hidden_size);
+        // nesterov_update(&optimizer, net.b1, net.gb1, vb1, net.hidden_size);
+        // nesterov_update(&optimizer, net.W2, net.gW2, vW2, net.hidden_size * net.output_size);
+        // nesterov_update(&optimizer, net.b2, net.gb2, vb2, net.output_size);
+
+        // AdaGrad
+        // adagrad_update(&optimizer, net.W1, net.gW1, hW1, net.input_size * net.hidden_size);
+        // adagrad_update(&optimizer, net.b1, net.gb1, hb1, net.hidden_size);
+        // adagrad_update(&optimizer, net.W2, net.gW2, hW2, net.hidden_size * net.output_size);
+        // adagrad_update(&optimizer, net.b2, net.gb2, hb2, net.output_size);
+
+        // RMSprop
+        // rmsprop_update(&optimizer, net.W1, net.gW1, hW1, net.input_size * net.hidden_size);
+        // rmsprop_update(&optimizer, net.b1, net.gb1, hb1, net.hidden_size);
+        // rmsprop_update(&optimizer, net.W2, net.gW2, hW2, net.hidden_size * net.output_size);
+        // rmsprop_update(&optimizer, net.b2, net.gb2, hb2, net.output_size);
+
+        //RMSprop
+        adam_update(&optimizer, net.W1, net.gW1, mW1, vW1, net.input_size * net.hidden_size);
+        adam_update(&optimizer, net.b1, net.gb1, mb1, vb1, net.hidden_size);
+        adam_update(&optimizer, net.W2, net.gW2, mW2, vW2, net.hidden_size * net.output_size);
+        adam_update(&optimizer, net.b2, net.gb2, mb2, vb2, net.output_size);
 
         memcpy(net.layers.Affine1.W, net.W1, sizeof(double) * net.input_size * net.hidden_size);
         memcpy(net.layers.Affine1.b, net.b1, sizeof(double) * net.hidden_size);
@@ -222,10 +296,21 @@ int main(void) {
     free(acc_count);
     free(batch_mask);
 
+    free(mW1);
+    free(mb1);
+    free(mW2);
+    free(mb2);
+
     free(vW1);
     free(vb1);
     free(vW2);
     free(vb2);
+
+    //free(hW1);
+    //free(hb1);
+    //free(hW2);
+    //free(hb2);
+
 
     layers_free(&net);
 
