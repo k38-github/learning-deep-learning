@@ -7,9 +7,9 @@ train_neuralnet: TwoLayerNet.o
 optimizer_compare_naive:
 	gcc -g -o optimizer_compare_naive optimizer_compare_naive.c ../common/function.o ../common/optimizer/SGD.o ../common/optimizer/Momentum.o ../common/optimizer/Nesterov.o ../common/optimizer/AdaGrad.o ../common/optimizer/RMSprop.o ../common/optimizer/Adam.o -lm
 
-run:
+trun:
 	./train_neuralnet
-orun:
+run:
 	./optimizer_compare_naive
 
 clean:

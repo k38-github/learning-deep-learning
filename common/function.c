@@ -26,8 +26,8 @@ int meshgrid(double *x, int x_size, double *y, int y_size, double *X, double *Y)
     }
 
     k = 0;
-    for (i=0;i<x_size;i++) {
-        for (j=0;j<y_size;j++) {
+    for (i=0;i<y_size;i++) {
+        for (j=0;j<x_size;j++) {
             Y[k] = y[i];
             k++;
         }
