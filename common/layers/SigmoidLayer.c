@@ -19,9 +19,9 @@ int sigmoidlayer_free(SigmoidLayer *this) {
 }
 
 int sigmoidlayer_forward(SigmoidLayer *this, double *out, double *x) {
-    int *tmp;
+    double *tmp;
 
-    if ((tmp = (double *)realloc(this->out, sizeof(double) * this->out)) == NULL) {
+    if ((tmp = (double *)realloc(this->out, sizeof(double) * this->size)) == NULL) {
         printf("Unable to allocate memory during realloc\n");
         exit(EXIT_FAILURE);
     } else {

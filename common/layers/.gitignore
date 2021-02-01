@@ -6,3 +6,5 @@ AffineLayer.h.gch
 AffineLayer.o
 SoftmaxWithLossLayer.h.gch
 SoftmaxWithLossLayer.o
+MultiLayerNet.h.gch
+MultiLayerNet.o
