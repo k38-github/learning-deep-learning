@@ -6,24 +6,14 @@
 #include "MultiLayerNet.h"
 #include "../function.h"
 
-char *ToLowerString(char *s) {
-    int i = 0;
-
-    while ( s[i] != '\0' ) {
-         s[i] = tolower((unsigned char)s[i]);
-         i++;
-    }
-
-    return s;
-}
-
-int init(MultiLayerNet *this, int input_size, int *hidden_size_list, int hidden_layer_num, int output_size, int batch_size, char *activation, char *weight_init_std, double weight_decay_lambda) {
+int multilayer_init(MultiLayerNet *this, int input_size, int *hidden_size_list, int hidden_layer_num, int output_size, int batch_size, char *activation, char *weight_init_std, double weight_decay_lambda) {
 
     int i;
 
     this->input_size = input_size;
     this->output_size = output_size;
     this->batch_size = batch_size;
+    this->hidden_size_list = (int *)malloc(sizeof(int) * hidden_layer_num);
     for (i=0;i<hidden_layer_num;i++) {
         this->hidden_size_list[i] = hidden_size_list[i];
     }
@@ -38,44 +28,41 @@ int init(MultiLayerNet *this, int input_size, int *hidden_size_list, int hidden_
     }
     this->all_size_list[hidden_layer_num+1] = output_size;
 
-    // all_layer_num = input + hidden_layer_num + output
-    this->W = (double **)malloc(sizeof(double) * hidden_layer_num + 2);
-    this->b = (double **)malloc(sizeof(double) * hidden_layer_num + 2);
+    // all_layer_num = input + hidden_layer_num + output - 1
+    this->W = (double **)malloc(sizeof(double) * (hidden_layer_num + 1));
+    this->b = (double **)malloc(sizeof(double) * (hidden_layer_num + 1));
 
-    for (i=0;i<this->hidden_layer_num + 2;i++) {
+    for (i=0;i<this->hidden_layer_num+1;i++) {
         this->W[i] = (double *)malloc(sizeof(double) * this->all_size_list[i] * this->all_size_list[i+1]);
         this->b[i] = (double *)calloc(this->all_size_list[i+1], sizeof(double));
     }
 
-    init_weight(this, weight_init_std);
+    multilayer_init_weight(this, weight_init_std);
 
     // Layers
-    this->layers.Affine = (AffineLayer **)malloc(sizeof(AffineLayer) * hidden_layer_num + 1);
-    this->layers.Relu = (ReluLayer **)malloc(sizeof(ReluLayer) * hidden_layer_num + 1);
-    this->layers.Sigmoid = (SigmoidLayer **)malloc(sizeof(SigmoidLayer) * hidden_layer_num + 1);
+    this->layers.Affine = (AffineLayer *)malloc(sizeof(AffineLayer) * (hidden_layer_num + 1));
+    this->layers.Relu = (ReluLayer *)malloc(sizeof(ReluLayer) * hidden_layer_num);
+    this->layers.Sigmoid = (SigmoidLayer *)malloc(sizeof(SigmoidLayer) * hidden_layer_num);
 
-    for (i=0;i<hidden_layer_num;i++) {
-        this->layers.Affine[i] = (AffineLayer *)malloc(sizeof(AffineLayer) * this->all_size_list[i] * this->all_size_list[i+1]);
-        affinelayer_init(&*this->layers.Affine[i], this->W[i], this->b[i], this->all_size_list[i], this->all_size_list[i+1]);
-        printf("%p %p\n", this->layers.Affine[i], &*this->layers.Affine[i]);
+    for (i=0;i<hidden_layer_num+1;i++) {
+        affinelayer_init(&this->layers.Affine[i], this->W[i], this->b[i], this->all_size_list[i], this->all_size_list[i+1]);
+        //printf("%d:%p\n", i, &this->layers.Affine[i]);
 
-        if (strcmp(ToLowerString(activation), "relu") == 0) {
-            this->layers.Relu[i] = (ReluLayer *)malloc(sizeof(ReluLayer) * batch_size * this->all_size_list[i+1]);
-            relulayer_init(&*this->layers.Relu[i], batch_size * this->all_size_list[i+1]);
-        } else if (strcmp(ToLowerString(activation), "sigmoid") == 0) {
-            this->layers.Sigmoid[i] = (SigmoidLayer *)malloc(sizeof(SigmoidLayer) * hidden_layer_num + 1);
-            sigmoidlayer_init(&*this->layers.Sigmoid[i], batch_size * this->all_size_list[i+1]);
+        if (i != hidden_layer_num) {
+            if (strcmp(activation, "relu") == 0) {
+                relulayer_init(&this->layers.Relu[i], batch_size * this->all_size_list[i+1]);
+            } else if (strcmp(activation, "sigmoid") == 0) {
+                sigmoidlayer_init(&this->layers.Sigmoid[i], batch_size * this->all_size_list[i+1]);
+            }
         }
     }
-    i++;
 
-    affinelayer_init(this->layers.Affine[i], this->W[i], this->b[i], this->all_size_list[i], output_size);
     softmaxwithlosslayer_init(&this->layers.SoftmaxWithLoss, batch_size, output_size);
 
-    this->gW = (double **)malloc(sizeof(double) * hidden_layer_num + 2);
-    this->gb = (double **)malloc(sizeof(double) * hidden_layer_num + 2);
+    this->gW = (double **)malloc(sizeof(double) * (hidden_layer_num + 1));
+    this->gb = (double **)malloc(sizeof(double) * (hidden_layer_num + 1));
 
-    for (i=0;i<this->hidden_layer_num + 2;i++) {
+    for (i=0;i<this->hidden_layer_num+1;i++) {
         this->gW[i] = (double *)malloc(sizeof(double) * this->all_size_list[i] * this->all_size_list[i+1]);
         this->gb[i] = (double *)calloc(this->all_size_list[i+1], sizeof(double));
     }
@@ -83,14 +70,14 @@ int init(MultiLayerNet *this, int input_size, int *hidden_size_list, int hidden_
     return 0;
 }
 
-int init_weight(MultiLayerNet *this, char *weight_init_std) {
+int multilayer_init_weight(MultiLayerNet *this, char *weight_init_std) {
     int i, j;
     double scale = 0.01;
 
-    for (i=0;i<this->hidden_layer_num+2;i++) {
-        if (strcmp(ToLowerString(weight_init_std), "relu") == 0 || strcmp(ToLowerString(weight_init_std), "he") == 0) {
+    for (i=0;i<this->hidden_layer_num+1;i++) {
+        if (strcmp(weight_init_std, "relu") == 0 || strcmp(weight_init_std, "he") == 0) {
             scale = sqrt(2.0 / this->all_size_list[i]);
-        } else if (strcmp(ToLowerString(weight_init_std), "sigmoid") == 0 || strcmp(ToLowerString(weight_init_std), "xavier") == 0) {
+        } else if (strcmp(weight_init_std, "sigmoid") == 0 || strcmp(weight_init_std, "xavier") == 0) {
             scale = sqrt(1.0 / this->all_size_list[i]);
         }
 
@@ -104,7 +91,7 @@ int init_weight(MultiLayerNet *this, char *weight_init_std) {
     return 0;
 }
 
-//int layers_free(TwoLayerNet *this) {
+//int multilayer_free(MultiLayerNet *this) {
 //    affinelayer_free(&this->layers.Affine1);
 //    relulayer_free(&this->layers.Relu1);
 //    affinelayer_free(&this->layers.Affine2);
@@ -113,39 +100,60 @@ int init_weight(MultiLayerNet *this, char *weight_init_std) {
 //    return 0;
 //
 //}
-//
-//int predict(TwoLayerNet *this, double *y, double *x) {
-//
-//    double *affine1_ret;
-//    double *relu1_ret;
-//
-//    affine1_ret = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
-//    relu1_ret = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
-//
-//    affinelayer_forward(&this->layers.Affine1, affine1_ret, x, this->batch_size, this->input_size);
-//    relulayer_forward(&this->layers.Relu1, relu1_ret, affine1_ret);
-//    affinelayer_forward(&this->layers.Affine2, y, relu1_ret, this->batch_size, this->hidden_size);
-//
-//    free(affine1_ret);
-//    free(relu1_ret);
-//
-//    return 0;
-//}
-//
-//int loss(TwoLayerNet *this, double *ret, double *x, double *t) {
-//
-//    double *y;
-//    y = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
-//
-//    predict(this, y, x);
-//
-//    softmaxwithlosslayer_forward(&this->layers.SoftmaxWithLoss, ret, y, t);
-//
-//    free(y);
-//
-//    return 0;
-//}
-//
+
+int predict(MultiLayerNet *this, double *y, double *x) {
+
+    int i = 0;
+
+    double **affine_ret;
+    double **relu_ret;
+
+    affine_ret = (double **)malloc(sizeof(double) * this->hidden_layer_num);
+    relu_ret = (double **)malloc(sizeof(double) * this->hidden_layer_num);
+
+    affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+    relu_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+
+    affinelayer_forward(&this->layers.Affine[i], affine_ret[i], x, this->all_size_list[i], this->all_size_list[i+1]);
+    relulayer_forward(&this->layers.Relu[i], relu_ret[i], affine_ret[i]);
+    for (i=1;i<this->hidden_layer_num;i++) {
+        affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+        relu_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+
+        affinelayer_forward(&this->layers.Affine[i], affine_ret[i], relu_ret[i-1], this->all_size_list[i], this->all_size_list[i+1]);
+        relulayer_forward(&this->layers.Relu[i], relu_ret[i], affine_ret[i]);
+        //printf("%d:%p\n", i, &this->layers.Affine[i]);
+
+    }
+    //printf("%d:%p\n", i, &this->layers.Affine[i]);
+    affinelayer_forward(&this->layers.Affine[i], y, relu_ret[i-1], this->all_size_list[i], this->all_size_list[i+1]);
+
+    for (i=0;i<this->hidden_layer_num;i++) {
+        free(affine_ret[i]);
+        free(relu_ret[i]);
+    }
+
+    free(affine_ret);
+    free(relu_ret);
+
+    return 0;
+}
+
+int loss(MultiLayerNet *this, double *ret, double *x, double *t) {
+
+    double *y;
+    y = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
+
+    predict(this, y, x);
+
+    softmaxwithlosslayer_forward(&this->layers.SoftmaxWithLoss, ret, y, t);
+    printf("cross_entropy: %.18f\n", *ret);
+
+    free(y);
+
+    return 0;
+}
+
 //int accuracy(TwoLayerNet *this, double *ret, double *x, int *t) {
 //    double *y;
 //    y = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
@@ -193,11 +201,11 @@ int init_weight(MultiLayerNet *this, char *weight_init_std) {
 //    return 0;
 //}
 //
-//int gradient(TwoLayerNet *this, double *x, double *t) {
-//    // forward
-//    double loss_ret = 0.0;
-//
-//    loss(this, &loss_ret, x, t);
+int gradient(MultiLayerNet *this, double *x, double *t) {
+    // forward
+    double loss_ret = 0.0;
+
+    loss(this, &loss_ret, x, t);
 //
 //    // backward
 //    double *dout;
@@ -233,5 +241,5 @@ int init_weight(MultiLayerNet *this, char *weight_init_std) {
 //    free(relu1_ret);
 //    free(affine1_ret);
 //
-//    return 0;
-//}
+    return 0;
+}

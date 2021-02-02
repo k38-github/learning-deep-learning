@@ -16,4 +16,4 @@ clean:
 	rm -rf ReluLayer.o
 	rm -rf SigmoidLayer.o
 	rm -rf AffineLayer.o
-	rm -rf MultiLayer.o
+	rm -rf MultiLayerNet.o

@@ -2,4 +2,5 @@ TwoLayerNet.h.gch
 TwoLayerNet.o
 train_neuralnet
 optimizer_compare_naive
+optimizer_compare_mnist
 out.txt

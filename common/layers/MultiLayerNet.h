@@ -7,9 +7,9 @@
 #include "SoftmaxWithLossLayer.h"
 
 typedef struct Layers {
-    AffineLayer **Affine;
-    ReluLayer **Relu;
-    SigmoidLayer **Sigmoid;
+    AffineLayer *Affine;
+    ReluLayer *Relu;
+    SigmoidLayer *Sigmoid;
     SoftmaxWithLossLayer SoftmaxWithLoss;
 }Layers;
 
@@ -27,15 +27,17 @@ typedef struct MultiLayerNet {
     double weight_decay_lambda;
     double **gW;
     double **gb;
+    double *x_batch;
+    double *t_batch;
     Layers layers;
 }MultiLayerNet;
 
-int init(MultiLayerNet *, int, int *, int, int, int, char *, char *, double);
-int init_weight(MultiLayerNet *, char *);
+int multilayer_init(MultiLayerNet *, int, int *, int, int, int, char *, char *, double);
+int multilayer_init_weight(MultiLayerNet *, char *);
 //int layers_free(MultiLayerNet *);
-//int predict(MultiLayerNet *, double *, double *);
-//int loss(MultiLayerNet *, double *, double *, double *);
+int predict(MultiLayerNet *, double *, double *);
+int loss(MultiLayerNet *, double *, double *, double *);
 //int accuracy(MultiLayerNet *, double *, double *, int *);
-//int gradient(MultiLayerNet *, double *, double *);
+int gradient(MultiLayerNet *, double *, double *);
 
 #endif
