@@ -20,7 +20,7 @@ int multilayer_init(MultiLayerNet *this, int input_size, int *hidden_size_list, 
     this->hidden_layer_num = hidden_layer_num;
     this->weight_decay_lambda = weight_decay_lambda;
 
-    this->all_size_list = (int *)malloc(sizeof(int) * this->hidden_layer_num+2);
+    this->all_size_list = (int *)malloc(sizeof(int) * (this->hidden_layer_num + 2));
     this->all_size_list[0] = input_size;
 
     for (i=0;i<this->hidden_layer_num;i++) {
@@ -114,19 +114,19 @@ int predict(MultiLayerNet *this, double *y, double *x) {
     affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
     relu_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
 
-    affinelayer_forward(&this->layers.Affine[i], affine_ret[i], x, this->all_size_list[i], this->all_size_list[i+1]);
+    affinelayer_forward(&this->layers.Affine[i], affine_ret[i], x, this->batch_size, this->all_size_list[i]);
     relulayer_forward(&this->layers.Relu[i], relu_ret[i], affine_ret[i]);
     for (i=1;i<this->hidden_layer_num;i++) {
         affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
         relu_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
 
-        affinelayer_forward(&this->layers.Affine[i], affine_ret[i], relu_ret[i-1], this->all_size_list[i], this->all_size_list[i+1]);
+        affinelayer_forward(&this->layers.Affine[i], affine_ret[i], relu_ret[i-1], this->batch_size, this->all_size_list[i]);
         relulayer_forward(&this->layers.Relu[i], relu_ret[i], affine_ret[i]);
-        //printf("%d:%p\n", i, &this->layers.Affine[i]);
+        //printf("%d:%p %d\n", i, &this->layers.Affine[i], this->all_size_list[i]);
 
     }
-    //printf("%d:%p\n", i, &this->layers.Affine[i]);
-    affinelayer_forward(&this->layers.Affine[i], y, relu_ret[i-1], this->all_size_list[i], this->all_size_list[i+1]);
+    //printf("%d:%p %d\n", i, &this->layers.Affine[i], this->all_size_list[i]);
+    affinelayer_forward(&this->layers.Affine[i], y, relu_ret[i-1], this->batch_size, this->all_size_list[i]);
 
     for (i=0;i<this->hidden_layer_num;i++) {
         free(affine_ret[i]);
@@ -147,9 +147,39 @@ int loss(MultiLayerNet *this, double *ret, double *x, double *t) {
     predict(this, y, x);
 
     softmaxwithlosslayer_forward(&this->layers.SoftmaxWithLoss, ret, y, t);
-    printf("cross_entropy: %.18f\n", *ret);
+
+    int i, j;
+    double weight_decay = 0.0;
+    double sum_W = 0.0;
+    double *tmp;
+    double *tmp_W;
+
+    for (i=0;i<this->hidden_layer_num+1;i++) {
+        if (i == 0) {
+            tmp_W = (double *)malloc(sizeof(double) * this->all_size_list[i] * this->all_size_list[i+1]);
+        } else {
+
+            if ((tmp = (double *)realloc(tmp_W, sizeof(double) * this->all_size_list[i] * this->all_size_list[i+1])) == NULL) {
+                printf("Unable to allocate memory during realloc\n");
+                exit(EXIT_FAILURE);
+            } else {
+                tmp_W = tmp;
+            }
+
+        }
+
+        for (j=0;j<this->all_size_list[i]*this->all_size_list[i+1];j++) {
+            tmp_W[j] = pow(this->W[i][j], 2.0);
+        }
+        sum_function(tmp_W, &sum_W, this->all_size_list[i]*this->all_size_list[i+1]);
+        weight_decay += 0.5 * this->weight_decay_lambda * sum_W;
+        //printf("weight_decay: %.18f\n", weight_decay);
+    }
+
+    *ret += weight_decay;
 
     free(y);
+    free(tmp_W);
 
     return 0;
 }
@@ -206,40 +236,61 @@ int gradient(MultiLayerNet *this, double *x, double *t) {
     double loss_ret = 0.0;
 
     loss(this, &loss_ret, x, t);
-//
-//    // backward
-//    double *dout;
-//    double *softmaxwithloss_ret;
-//    double *affine2_ret;
-//    double *relu1_ret;
-//    double *affine1_ret;
-//
-//    dout = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
-//    softmaxwithloss_ret = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
-//    affine2_ret = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
-//    relu1_ret = (double *)malloc(sizeof(double) * this->batch_size * this->hidden_size);
-//    affine1_ret = (double *)malloc(sizeof(double) * this->batch_size * this->input_size);
-//
-//    int i;
-//    for(i=0;i<this->batch_size*this->output_size;i++) {
-//        dout[i] = 1;
-//    }
-//
-//    softmaxwithlosslayer_backward(&this->layers.SoftmaxWithLoss, softmaxwithloss_ret, dout);
-//    affinelayer_backward(&this->layers.Affine2, affine2_ret, softmaxwithloss_ret);
-//    relulayer_backward(&this->layers.Relu1, relu1_ret, affine2_ret);
-//    affinelayer_backward(&this->layers.Affine1, affine1_ret, relu1_ret);
-//
-//    memcpy(this->gW1, this->layers.Affine1.dW, sizeof(double) * this->input_size * this->hidden_size);
-//    memcpy(this->gb1, this->layers.Affine1.db, sizeof(double) * this->hidden_size);
-//    memcpy(this->gW2, this->layers.Affine2.dW, sizeof(double) * this->hidden_size * this->output_size);
-//    memcpy(this->gb2, this->layers.Affine2.db, sizeof(double) * this->output_size);
-//
-//    free(dout);
-//    free(softmaxwithloss_ret);
-//    free(affine2_ret);
-//    free(relu1_ret);
-//    free(affine1_ret);
-//
+    printf("cross_entropy: %.18f\n", loss_ret);
+
+    // backward
+    int i;
+    double *dout;
+    double *softmaxwithloss_ret;
+    double **affine_ret;
+    double **relu_ret;
+
+    dout = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
+    softmaxwithloss_ret = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
+
+    for(i=0;i<this->batch_size*this->output_size;i++) {
+        dout[i] = 1;
+    }
+
+    softmaxwithlosslayer_backward(&this->layers.SoftmaxWithLoss, softmaxwithloss_ret, dout);
+
+    affine_ret = (double **)malloc(sizeof(double) * (this->hidden_layer_num + 1));
+    relu_ret = (double **)malloc(sizeof(double) * this->hidden_layer_num);
+
+    i = this->hidden_layer_num;
+    affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+    relu_ret[i-1] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+
+    affinelayer_backward(&this->layers.Affine[i], affine_ret[i], softmaxwithloss_ret);
+    relulayer_backward(&this->layers.Relu[i-1], relu_ret[i-1], affine_ret[i]);
+
+    for (i=this->hidden_layer_num-1;0<i;i--) {
+        affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+        relu_ret[i-1] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+
+        affinelayer_backward(&this->layers.Affine[i], affine_ret[i], relu_ret[i]);
+        relulayer_backward(&this->layers.Relu[i-1], relu_ret[i-1], affine_ret[i]);
+        //printf("i: %d\n", i);
+    }
+    //printf("i: %d\n", i);
+    affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+    affinelayer_backward(&this->layers.Affine[i], affine_ret[i], relu_ret[i]);
+
+    for (i=0;i<this->hidden_layer_num+1;i++) {
+        memcpy(this->gW[i], this->layers.Affine[i].dW, sizeof(double) * this->all_size_list[i] * this->all_size_list[i+1]);
+        memcpy(this->gb[i], this->layers.Affine[i].db, sizeof(double) * this->all_size_list[i+1]);
+    }
+
+    for (i=0;i<this->hidden_layer_num;i++) {
+        free(affine_ret[i]);
+        free(relu_ret[i]);
+    }
+
+    free(affine_ret);
+    free(relu_ret);
+
+    free(softmaxwithloss_ret);
+    free(dout);
+
     return 0;
 }
