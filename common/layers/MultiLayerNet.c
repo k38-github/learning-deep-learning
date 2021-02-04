@@ -173,7 +173,7 @@ int loss(MultiLayerNet *this, double *ret, double *x, double *t) {
         }
         sum_function(tmp_W, &sum_W, this->all_size_list[i]*this->all_size_list[i+1]);
         weight_decay += 0.5 * this->weight_decay_lambda * sum_W;
-        //printf("weight_decay: %.18f\n", weight_decay);
+        // printf("weight_decay: %.18f\n", weight_decay);
     }
 
     *ret += weight_decay;
@@ -239,7 +239,7 @@ int gradient(MultiLayerNet *this, double *x, double *t) {
     printf("cross_entropy: %.18f\n", loss_ret);
 
     // backward
-    int i;
+    int i, j;
     double *dout;
     double *softmaxwithloss_ret;
     double **affine_ret;
@@ -275,6 +275,12 @@ int gradient(MultiLayerNet *this, double *x, double *t) {
     //printf("i: %d\n", i);
     affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
     affinelayer_backward(&this->layers.Affine[i], affine_ret[i], relu_ret[i]);
+
+    for (i=0;i<this->hidden_layer_num+1;i++) {
+        for (j=0;j<this->all_size_list[i]*this->all_size_list[i+1];j++) {
+            this->layers.Affine[i].dW[j] = this->layers.Affine[i].dW[j] + this->weight_decay_lambda * this->W[i][j];
+        }
+    }
 
     for (i=0;i<this->hidden_layer_num+1;i++) {
         memcpy(this->gW[i], this->layers.Affine[i].dW, sizeof(double) * this->all_size_list[i] * this->all_size_list[i+1]);

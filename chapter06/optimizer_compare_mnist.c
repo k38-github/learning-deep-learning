@@ -61,9 +61,9 @@ int main(void) {
 
     int idx = 0;
     // SGD
-    double learning_rate = 0.01;
-    SGD optimizer;
-    sgd_init(&optimizer, learning_rate);
+    // double learning_rate = 0.01;
+    // SGD optimizer;
+    // sgd_init(&optimizer, learning_rate);
 
     // Momentum
     // double learning_rate = 0.01;
@@ -74,13 +74,29 @@ int main(void) {
     // Momentum optimizer;
     // momentum_init(&optimizer, learning_rate, momentum);
 
-    // vW = (double **)malloc(sizeof(double) * multinet.hidden_layer_num+1);
-    // vb = (double **)malloc(sizeof(double) * multinet.hidden_layer_num+1);
+    // vW = (double **)malloc(sizeof(double) * (multinet.hidden_layer_num + 1));
+    // vb = (double **)malloc(sizeof(double) * (multinet.hidden_layer_num + 1));
 
     // for (idx=0;idx<multinet.hidden_layer_num+1;idx++) {
     //     vW[idx] = (double *)calloc(multinet.all_size_list[idx] * multinet.all_size_list[idx+1], sizeof(double));
     //     vb[idx] = (double *)calloc(multinet.all_size_list[idx+1], sizeof(double));
     // }
+
+    // Adagrad
+    double learning_rate = 1.5;
+    double **hW;
+    double **hb;
+
+    AdaGrad adagrad_optimizer;
+    adagrad_init(&adagrad_optimizer, learning_rate);
+
+    hW = (double **)malloc(sizeof(double) * (multinet.hidden_layer_num + 1));
+    hb = (double **)malloc(sizeof(double) * (multinet.hidden_layer_num + 1));
+
+    for (idx=0;idx<multinet.hidden_layer_num+1;idx++) {
+        hW[idx] = (double *)calloc(multinet.all_size_list[idx] * multinet.all_size_list[idx+1], sizeof(double));
+        hb[idx] = (double *)calloc(multinet.all_size_list[idx+1], sizeof(double));
+    }
 
     int *batch_mask;
     multinet.x_batch = (double *)malloc(sizeof(double) * batch_size * input_size);
@@ -114,14 +130,18 @@ int main(void) {
         gradient(&multinet, multinet.x_batch, multinet.t_batch);
 
         for (idx=0;idx<multinet.hidden_layer_num+1;idx++) {
+            printf("idx:%d %d\n", multinet.all_size_list[idx], multinet.all_size_list[idx+1]);
             // SGD
-            sgd_update(&optimizer, multinet.W[idx], multinet.gW[idx], multinet.all_size_list[idx] * multinet.all_size_list[idx+1]);
-            sgd_update(&optimizer, multinet.b[idx], multinet.gb[idx], multinet.all_size_list[idx+1]);
+            // sgd_update(&optimizer, multinet.W[idx], multinet.gW[idx], multinet.all_size_list[idx] * multinet.all_size_list[idx+1]);
+            // sgd_update(&optimizer, multinet.b[idx], multinet.gb[idx], multinet.all_size_list[idx+1]);
+
             // Momentum
             // momentum_update(&optimizer, multinet.W[idx], multinet.gW[idx], vW[idx], multinet.all_size_list[idx] * multinet.all_size_list[idx+1]);
             // momentum_update(&optimizer, multinet.b[idx], multinet.gb[idx], vb[idx], multinet.all_size_list[idx+1]);
 
-            //printf("idx:%d %d\n", multinet.all_size_list[idx], multinet.all_size_list[idx+1]);
+            adagrad_update(&adagrad_optimizer, multinet.W[idx], multinet.gW[idx], hW[idx], multinet.all_size_list[idx] * multinet.all_size_list[idx+1]);
+            adagrad_update(&adagrad_optimizer, multinet.b[idx], multinet.gb[idx], hb[idx], multinet.all_size_list[idx+1]);
+
             memcpy(multinet.layers.Affine[idx].W, multinet.W[idx], sizeof(double) * multinet.all_size_list[idx] * multinet.all_size_list[idx+1]);
             memcpy(multinet.layers.Affine[idx].b, multinet.b[idx], sizeof(double) * multinet.all_size_list[idx+1]);
         }
