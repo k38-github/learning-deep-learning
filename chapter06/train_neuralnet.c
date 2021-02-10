@@ -226,7 +226,7 @@ int main(void) {
         // rmsprop_update(&optimizer, net.W2, net.gW2, hW2, net.hidden_size * net.output_size);
         // rmsprop_update(&optimizer, net.b2, net.gb2, hb2, net.output_size);
 
-        //RMSprop
+        // Adam
         adam_update(&optimizer, net.W1, net.gW1, mW1, vW1, net.input_size * net.hidden_size);
         adam_update(&optimizer, net.b1, net.gb1, mb1, vb1, net.hidden_size);
         adam_update(&optimizer, net.W2, net.gW2, mW2, vW2, net.hidden_size * net.output_size);
