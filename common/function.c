@@ -46,6 +46,7 @@ int random_randn(double *c, int row, int col) {
 
     double z = 0.0;
     double uniform = 0.0;
+    double uniform2 = 0.0;
     double mu = 0.0;
     double sigma = 1.0;
 
@@ -60,7 +61,8 @@ int random_randn(double *c, int row, int col) {
     for (i=0;i<row;i++) {
         for (j=0;j<col;j++) {
             uniform = ((double)rand()+1.0)/((double)RAND_MAX+2.0);
-            z = sqrt(-2.0*log(uniform)) * sin(2.0*M_PI*uniform);
+            uniform2 = ((double)rand()+1.0)/((double)RAND_MAX+2.0);
+            z = sqrt(-2.0*log(uniform)) * sin(2.0*M_PI*uniform2);
 
             c[i*col+j] = mu + sigma * z;
         }
