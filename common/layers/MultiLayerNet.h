@@ -22,7 +22,7 @@ typedef struct MultiLayerNet {
     int hidden_layer_num;
     int output_size;
     int batch_size;
-    double activation;
+    char *activation;
     double weight_init_std;
     double weight_decay_lambda;
     double **gW;
@@ -34,7 +34,7 @@ typedef struct MultiLayerNet {
 
 int multilayer_init(MultiLayerNet *, int, int *, int, int, int, char *, char *, double);
 int multilayer_init_weight(MultiLayerNet *, char *);
-//int layers_free(MultiLayerNet *);
+int multilayer_free(MultiLayerNet *);
 int predict(MultiLayerNet *, double *, double *);
 int loss(MultiLayerNet *, double *, double *, double *);
 //int accuracy(MultiLayerNet *, double *, double *, int *);

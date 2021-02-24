@@ -45,8 +45,6 @@ int softmaxwithlosslayer_forward(SoftmaxWithLossLayer *this, double *loss, doubl
         }
     }
 
-    //cross_entropy_error(this->y, t, loss, this->row_size);
-
     // y (100x10)
     // t (100x10)
     double *y_tmp;
@@ -67,7 +65,6 @@ int softmaxwithlosslayer_forward(SoftmaxWithLossLayer *this, double *loss, doubl
         }
         cross_entropy_error(y_tmp, t_tmp, loss, this->row_size);
         loss_tmp[i] = *loss;
-        printf("loss_tmp: %.18f\n", loss_tmp[i]);
     }
 
     sum_function(loss_tmp, loss, this->col_size);

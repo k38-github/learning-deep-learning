@@ -44,6 +44,8 @@ int multilayer_init(MultiLayerNet *this, int input_size, int *hidden_size_list, 
     this->layers.Relu = (ReluLayer *)malloc(sizeof(ReluLayer) * hidden_layer_num);
     this->layers.Sigmoid = (SigmoidLayer *)malloc(sizeof(SigmoidLayer) * hidden_layer_num);
 
+    this->activation = activation;
+
     for (i=0;i<hidden_layer_num+1;i++) {
         affinelayer_init(&this->layers.Affine[i], this->W[i], this->b[i], this->all_size_list[i], this->all_size_list[i+1]);
         //printf("%d:%p\n", i, &this->layers.Affine[i]);
@@ -92,15 +94,46 @@ int multilayer_init_weight(MultiLayerNet *this, char *weight_init_std) {
     return 0;
 }
 
-//int multilayer_free(MultiLayerNet *this) {
-//    affinelayer_free(&this->layers.Affine1);
-//    relulayer_free(&this->layers.Relu1);
-//    affinelayer_free(&this->layers.Affine2);
-//    softmaxwithlosslayer_free(&this->layers.SoftmaxWithLoss);
-//
-//    return 0;
-//
-//}
+int multilayer_free(MultiLayerNet *this) {
+    free(this->hidden_size_list);
+    free(this->all_size_list);
+
+    int i;
+    for (i=0;i<this->hidden_layer_num+1;i++) {
+        free(this->W[i]);
+        free(this->b[i]);
+    }
+    free(this->W);
+    free(this->b);
+
+    for (i=0;i<this->hidden_layer_num+1;i++) {
+        affinelayer_free(&this->layers.Affine[i]);
+
+        if (i != this->hidden_layer_num) {
+            if (strcmp(this->activation, "relu") == 0) {
+                relulayer_free(&this->layers.Relu[i]);
+            } else if (strcmp(this->activation, "sigmoid") == 0) {
+                sigmoidlayer_free(&this->layers.Sigmoid[i]);
+            }
+        }
+    }
+
+    free(this->layers.Affine);
+    free(this->layers.Relu);
+    free(this->layers.Sigmoid);
+
+    softmaxwithlosslayer_free(&this->layers.SoftmaxWithLoss);
+
+    for (i=0;i<this->hidden_layer_num+1;i++) {
+        free(this->gW[i]);
+        free(this->gb[i]);
+    }
+
+    free(this->gW);
+    free(this->gb);
+
+    return 0;
+}
 
 int predict(MultiLayerNet *this, double *y, double *x) {
 
@@ -115,10 +148,10 @@ int predict(MultiLayerNet *this, double *y, double *x) {
     affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
     relu_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
 
-    printf("forward------\n");
-    printf("Affine[%d]: x->affine_ret[%d]\n", i, i);
+    // printf("forward------\n");
+    // printf("Affine[%d]: x->affine_ret[%d]\n", i, i);
     affinelayer_forward(&this->layers.Affine[i], affine_ret[i], x, this->batch_size, this->all_size_list[i]);
-    printf("Relu[%d]: affine_ret[%d]->reluret[%d]\n", i, i, i);
+    // printf("Relu[%d]: affine_ret[%d]->reluret[%d]\n", i, i, i);
     relulayer_forward(&this->layers.Relu[i], relu_ret[i], affine_ret[i]);
     // print_matrix(relu_ret[i], this->batch_size, this->all_size_list[i], "e");
     // printf("\n");
@@ -128,14 +161,14 @@ int predict(MultiLayerNet *this, double *y, double *x) {
         affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
         relu_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
 
-        printf("Affine[%d]: relu_ret[%d]->affine_ret[%d]\n", i, i-1, i);
+        // printf("Affine[%d]: relu_ret[%d]->affine_ret[%d]\n", i, i-1, i);
         affinelayer_forward(&this->layers.Affine[i], affine_ret[i], relu_ret[i-1], this->batch_size, this->all_size_list[i]);
-        printf("Relu[%d]: affine_ret[%d]->reluret[%d]\n", i, i, i);
+        // printf("Relu[%d]: affine_ret[%d]->reluret[%d]\n", i, i, i);
         relulayer_forward(&this->layers.Relu[i], relu_ret[i], affine_ret[i]);
-        printf("%d:%p %d\n", i, &this->layers.Affine[i], this->all_size_list[i]);
+        // printf("%d:%p %d\n", i, &this->layers.Affine[i], this->all_size_list[i]);
     }
     // printf("%d:%p %d\n", i, &this->layers.Affine[i], this->all_size_list[i]);
-    printf("Affine[%d]: relu_ret[%d]->affine_ret[%d] size: %d\n", i, i-1, i, this->all_size_list[i]);
+    // printf("Affine[%d]: relu_ret[%d]->affine_ret[%d] size: %d\n", i, i-1, i, this->all_size_list[i]);
     affinelayer_forward(&this->layers.Affine[i], y, relu_ret[i-1], this->batch_size, this->all_size_list[i]);
 
     for (i=0;i<this->hidden_layer_num;i++) {

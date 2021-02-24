@@ -50,8 +50,6 @@ int main(void) {
     int input_size = 784;
     int hidden_size_list[4] = {100, 100, 100, 100};
     int hidden_layer_num = 4;
-    // int hidden_size_list[2] = {100, 100};
-    // int hidden_layer_num = 2;
     int output_size = 10;
     int batch_size = 128;
 
@@ -132,7 +130,7 @@ int main(void) {
         gradient(&multinet, multinet.x_batch, multinet.t_batch);
 
         for (idx=0;idx<multinet.hidden_layer_num+1;idx++) {
-            printf("idx:%d %d\n", multinet.all_size_list[idx], multinet.all_size_list[idx+1]);
+            // printf("idx:%d %d\n", multinet.all_size_list[idx], multinet.all_size_list[idx+1]);
             // SGD
             // sgd_update(&optimizer, multinet.W[idx], multinet.gW[idx], multinet.all_size_list[idx] * multinet.all_size_list[idx+1]);
             // sgd_update(&optimizer, multinet.b[idx], multinet.gb[idx], multinet.all_size_list[idx+1]);
@@ -149,6 +147,8 @@ int main(void) {
         }
 
     }
+
+    multilayer_free(&multinet);
 
     return 0;
 }
