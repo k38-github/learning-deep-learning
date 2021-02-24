@@ -46,6 +46,11 @@ int main(void) {
 
     int iters_num = 2000;
     int train_size = size[0];
+    double *train_loss;
+    double *iters_num_arr;
+
+    train_loss = (double *)malloc(sizeof(double) * iters_num);
+    iters_num_arr = (double *)malloc(sizeof(double) * iters_num);
 
     int input_size = 784;
     int hidden_size_list[4] = {100, 100, 100, 100};
@@ -105,7 +110,7 @@ int main(void) {
 
     int i, j, k, l, m;
     for (i=0;i<iters_num;i++) {
-        printf("iters_num: %d\n", i);
+        // printf("iters_num: %d\n", i);
 
         random_choice(train_size, input_size, batch_size, batch_mask);
 
@@ -146,9 +151,47 @@ int main(void) {
             memcpy(multinet.layers.Affine[idx].b, multinet.b[idx], sizeof(double) * multinet.all_size_list[idx+1]);
         }
 
+        double loss_ret = 0.0;
+        loss(&multinet, &loss_ret, multinet.x_batch, multinet.t_batch);
+        printf("iteration: %d cross_entropy_loss: %f\n", i, loss_ret);
+
+        train_loss[i] = loss_ret;
+        iters_num_arr[i] = i;
+
     }
 
+    plot_graph(iters_num_arr, train_loss, iters_num);
+
     multilayer_free(&multinet);
+
+    free(x_train);
+    free(t_train);
+    free(x_test);
+    free(t_test);
+    free(train_loss);
+    free(iters_num_arr);
+    free(batch_mask);
+
+    for (idx=0;idx<multinet.hidden_layer_num+1;idx++) {
+         free(vW[idx]);
+         free(vb[idx]);
+    }
+    free(vW);
+    free(vb);
+
+    //for (idx=0;idx<multinet.hidden_layer_num+1;idx++) {
+    //     free(hW[idx]);
+    //     free(hb[idx]);
+    //}
+    //free(hW);
+    //free(hb);
+
+    //for (idx=0;idx<multinet.hidden_layer_num+1;idx++) {
+    //     free(mW[idx]);
+    //     free(mb[idx]);
+    //}
+    //free(mW);
+    //free(mb);
 
     return 0;
 }

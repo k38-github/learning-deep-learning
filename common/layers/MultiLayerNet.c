@@ -280,7 +280,6 @@ int gradient(MultiLayerNet *this, double *x, double *t) {
     double loss_ret = 0.0;
 
     loss(this, &loss_ret, x, t);
-    printf("cross_entropy: %.18f\n", loss_ret);
 
     // backward
     int i, j;
