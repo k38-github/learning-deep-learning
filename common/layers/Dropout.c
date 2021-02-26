@@ -38,9 +38,9 @@ int dropout_forward(Dropout *this, double *out, double *x, char *train_flg) {
 
         for (i=0;i<this->col_size*this->row_size;i++) {
             if (tmp_mask[i] < this->dropout_ratio) {
-                this->mask[i] = 1;
-            } else {
                 this->mask[i] = 0;
+            } else {
+                this->mask[i] = 1;
             }
         }
 
