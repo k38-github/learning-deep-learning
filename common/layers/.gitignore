@@ -8,3 +8,5 @@ SoftmaxWithLossLayer.h.gch
 SoftmaxWithLossLayer.o
 MultiLayerNet.h.gch
 MultiLayerNet.o
+Dropout.h.gch
+Dropout.o
