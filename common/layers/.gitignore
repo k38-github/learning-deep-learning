@@ -10,3 +10,5 @@ MultiLayerNet.h.gch
 MultiLayerNet.o
 Dropout.h.gch
 Dropout.o
+BatchNormalization.h.gch
+BatchNormalization.o

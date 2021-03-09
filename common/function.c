@@ -97,6 +97,25 @@ int random_choice(int data_size, int element_size, int batch_size, int *index) {
 }
 
 /**
+ * 行列の要素の平均値
+ * x: 入力配列
+ * y: 行列の要素の平均値
+ * element: 要素数
+ **/
+int mean_function(double *x, double *y, int element) {
+    double sum = 0.0;
+
+    int i = 0;
+    for(i=0;i<element;i++) {
+        sum += x[i];
+    }
+
+    *y = sum / element;
+
+    return 0;
+}
+
+/**
  * 行列の要素の最小値
  * x: 入力配列
  * y: 行列の要素の最小値

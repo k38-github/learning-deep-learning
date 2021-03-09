@@ -7,8 +7,8 @@ typedef struct BatchNormalization {
     double momentum;
     double *running_mean;
     double *running_var;
-    int batch_size;
     double *xc;
+    double *xn;
     double *std;
     double *dgamma;
     double *dbeta;
@@ -16,7 +16,7 @@ typedef struct BatchNormalization {
     int row_size;
 } BatchNormalization;
 
-int batchnornalization_init(BatchNormalization *, double, int, int);
+int batchnormalization_init(BatchNormalization *, double *, double *, double, double *, double *, int, int);
 int batchnornalization_free(BatchNormalization *);
 int batchnornalization_forward(BatchNormalization *, double *, double *, char *);
 int batchnornalization_backward(BatchNormalization *, double *, double *);

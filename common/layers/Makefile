@@ -1,4 +1,4 @@
-all: SoftmaxWithLossLayer.o ReluLayer.o SigmoidLayer.o AffineLayer.o MultiLayerNet.o Dropout.o
+all: SoftmaxWithLossLayer.o ReluLayer.o SigmoidLayer.o AffineLayer.o MultiLayerNet.o Dropout.o BatchNormalization.o
 
 SoftmaxWithLossLayer.o:
 	gcc -g -c SoftmaxWithLossLayer.c SoftmaxWithLossLayer.h
@@ -12,6 +12,8 @@ MultiLayerNet.o:
 	gcc -g -c MultiLayerNet.c MultiLayerNet.h
 Dropout.o:
 	gcc -g -c Dropout.c Dropout.h
+BatchNormalization.o:
+	gcc -g -c BatchNormalization.c BatchNormalization.h
 
 clean:
 	rm -rf SoftmaxWithLossLayer.o
@@ -20,3 +22,4 @@ clean:
 	rm -rf AffineLayer.o
 	rm -rf MultiLayerNet.o
 	rm -rf Dropout.o
+	rm -rf BatchNormalization.o

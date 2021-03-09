@@ -6,6 +6,7 @@
 int meshgrid(double *, int, double *, int, double *, double *);
 int random_randn(double *, int, int);
 int random_choice(int, int, int, int *);
+int mean_function(double *, double *, int);
 int min_function(double *, double *, int);
 int argmin(double *, int *, int);
 int max_function(double *, double *, int);
