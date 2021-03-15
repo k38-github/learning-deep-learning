@@ -17,8 +17,8 @@ typedef struct BatchNormalization {
 } BatchNormalization;
 
 int batchnormalization_init(BatchNormalization *, double *, double *, double, double *, double *, int, int);
-int batchnornalization_free(BatchNormalization *);
-int batchnornalization_forward(BatchNormalization *, double *, double *, char *);
-int batchnornalization_backward(BatchNormalization *, double *, double *);
+int batchnormalization_free(BatchNormalization *);
+int batchnormalization_forward(BatchNormalization *, double *, double *, char *);
+int batchnormalization_backward(BatchNormalization *, double *, double *);
 
 #endif

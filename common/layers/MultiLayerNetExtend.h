@@ -2,18 +2,22 @@
 #define _MULTILAYERNET
 
 #include "AffineLayer.h"
+#include "BatchNormalization.h"
 #include "ReluLayer.h"
 #include "SigmoidLayer.h"
+#include "Dropout.h"
 #include "SoftmaxWithLossLayer.h"
 
 typedef struct Layers {
     AffineLayer *Affine;
+    BatchNormalization *BatchNormalization;
     ReluLayer *Relu;
     SigmoidLayer *Sigmoid;
+    Dropout *Dropout;
     SoftmaxWithLossLayer SoftmaxWithLoss;
 }Layers;
 
-typedef struct MultiLayerNet {
+typedef struct MultiLayerNetExtend {
     double **W;
     double **b;
     int *all_size_list;
@@ -25,19 +29,21 @@ typedef struct MultiLayerNet {
     char *activation;
     double weight_init_std;
     double weight_decay_lambda;
+    char *use_dropout;
+    char *use_batchnorm;
     double **gW;
     double **gb;
     double *x_batch;
     double *t_batch;
     Layers layers;
-}MultiLayerNet;
+}MultiLayerNetExtend;
 
-int multilayer_init(MultiLayerNet *, int, int *, int, int, int, char *, char *, double);
-int multilayer_init_weight(MultiLayerNet *, char *);
-int multilayer_free(MultiLayerNet *);
-int predict(MultiLayerNet *, double *, double *);
-int loss(MultiLayerNet *, double *, double *, double *);
+int multilayerextend_init(MultiLayerNetExtend *, int, int *, int, int, int, char *, char *, double, char *, double, char *);
+int multilayerextend_init_weight(MultiLayerNetExtend *, char *);
+int multilayerextend_free(MultiLayerNetExtend *);
+int predict(MultiLayerNetExtend *, double *, double *, char *);
+int loss(MultiLayerNetExtend *, double *, double *, double *, char *);
 //int accuracy(MultiLayerNet *, double *, double *, int *);
-int gradient(MultiLayerNet *, double *, double *);
+int gradient(MultiLayerNetExtend *, double *, double *);
 
 #endif

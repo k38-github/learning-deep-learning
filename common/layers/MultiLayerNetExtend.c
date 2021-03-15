@@ -8,7 +8,7 @@
 
 int multilayerextend_init(MultiLayerNetExtend *this, int input_size, int *hidden_size_list, int hidden_layer_num, int output_size, int batch_size, char *activation, char *weight_init_std, double weight_decay_lambda, char *use_dropout, double dropout_ration, char *use_batchnorm) {
 
-    int i;
+    int i, j;
 
     this->input_size = input_size;
     this->output_size = output_size;
@@ -26,6 +26,7 @@ int multilayerextend_init(MultiLayerNetExtend *this, int input_size, int *hidden
     for (i=0;i<this->hidden_layer_num;i++) {
         this->all_size_list[i+1] = hidden_size_list[i];
     }
+
     this->all_size_list[hidden_layer_num+1] = output_size;
 
     // all_layer_num = input + hidden_layer_num + output - 1
@@ -37,25 +38,54 @@ int multilayerextend_init(MultiLayerNetExtend *this, int input_size, int *hidden
         this->b[i] = (double *)calloc(this->all_size_list[i+1], sizeof(double));
     }
 
-    multilayer_init_weight(this, weight_init_std);
+    multilayerextend_init_weight(this, weight_init_std);
 
     // Layers
     this->layers.Affine = (AffineLayer *)malloc(sizeof(AffineLayer) * (hidden_layer_num + 1));
+    this->layers.BatchNormalization = (BatchNormalization *)malloc(sizeof(BatchNormalization) * hidden_layer_num);
     this->layers.Relu = (ReluLayer *)malloc(sizeof(ReluLayer) * hidden_layer_num);
     this->layers.Sigmoid = (SigmoidLayer *)malloc(sizeof(SigmoidLayer) * hidden_layer_num);
+    this->layers.Dropout = (Dropout *)malloc(sizeof(Dropout) * hidden_layer_num);
 
     this->activation = activation;
+    this->use_dropout = use_dropout;
+    this->use_batchnorm = use_batchnorm;
 
     for (i=0;i<hidden_layer_num+1;i++) {
         affinelayer_init(&this->layers.Affine[i], this->W[i], this->b[i], this->all_size_list[i], this->all_size_list[i+1]);
         //printf("%d:%p\n", i, &this->layers.Affine[i]);
 
         if (i != hidden_layer_num) {
+            if (strcmp(use_batchnorm, "true") == 0) {
+                double *gamma;
+                double *beta;
+                double momentum = 0.9;
+                double *running_mean;
+                double *running_var;
+
+                gamma = (double *)malloc(sizeof(double) * this->all_size_list[i+1]);
+                for (j=0;j<this->all_size_list[i+1];j++) {
+                    gamma[j] = 1;
+                }
+                beta = (double *)calloc(this->all_size_list[i+1], sizeof(double));
+                running_mean = (double *)malloc(sizeof(double) * this->all_size_list[i+1]);
+                running_var = (double *)malloc(sizeof(double) * this->all_size_list[i+1]);
+
+                batchnormalization_init(&this->layers.BatchNormalization[i], gamma, beta, momentum, running_mean, running_var, batch_size, this->all_size_list[i+1]);
+            }
+
             if (strcmp(activation, "relu") == 0) {
                 relulayer_init(&this->layers.Relu[i], batch_size * this->all_size_list[i+1]);
             } else if (strcmp(activation, "sigmoid") == 0) {
                 sigmoidlayer_init(&this->layers.Sigmoid[i], batch_size * this->all_size_list[i+1]);
             }
+
+            if (strcmp(use_dropout, "true") == 0) {
+                double dropout_ratio = 0.5;
+
+                dropout_init(&this->layers.Dropout[i], dropout_ratio, batch_size, this->all_size_list[i+1]);
+            }
+
         }
     }
 
@@ -72,7 +102,7 @@ int multilayerextend_init(MultiLayerNetExtend *this, int input_size, int *hidden
     return 0;
 }
 
-int multilayer_init_weight(MultiLayerNet *this, char *weight_init_std) {
+int multilayerextend_init_weight(MultiLayerNetExtend *this, char *weight_init_std) {
     int i, j;
     double scale = 0.01;
 
@@ -94,7 +124,7 @@ int multilayer_init_weight(MultiLayerNet *this, char *weight_init_std) {
     return 0;
 }
 
-int multilayer_free(MultiLayerNet *this) {
+int multilayerextend_free(MultiLayerNetExtend *this) {
     free(this->hidden_size_list);
     free(this->all_size_list);
 
@@ -135,59 +165,91 @@ int multilayer_free(MultiLayerNet *this) {
     return 0;
 }
 
-int predict(MultiLayerNet *this, double *y, double *x) {
+int predict(MultiLayerNetExtend *this, double *y, double *x, char *train_flg) {
 
     int i = 0;
 
     double **affine_ret;
+    double **batchnorm_ret;
     double **relu_ret;
+    double **dropout_ret;
 
     affine_ret = (double **)malloc(sizeof(double) * this->hidden_layer_num);
+    batchnorm_ret = (double **)malloc(sizeof(double) * this->hidden_layer_num);
     relu_ret = (double **)malloc(sizeof(double) * this->hidden_layer_num);
+    dropout_ret = (double **)malloc(sizeof(double) * this->hidden_layer_num);
 
     affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+    batchnorm_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
     relu_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+    dropout_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
 
     // printf("forward------\n");
     // printf("Affine[%d]: x->affine_ret[%d]\n", i, i);
     affinelayer_forward(&this->layers.Affine[i], affine_ret[i], x, this->batch_size, this->all_size_list[i]);
     // printf("Relu[%d]: affine_ret[%d]->reluret[%d]\n", i, i, i);
-    relulayer_forward(&this->layers.Relu[i], relu_ret[i], affine_ret[i]);
+    if (strcmp(this->use_batchnorm, "true") == 0) {
+        batchnormalization_forward(&this->layers.BatchNormalization[i], batchnorm_ret[i], affine_ret[i], train_flg);
+        relulayer_forward(&this->layers.Relu[i], relu_ret[i], batchnorm_ret[i]);
+    } else {
+        relulayer_forward(&this->layers.Relu[i], relu_ret[i], affine_ret[i]);
+    }
     // print_matrix(relu_ret[i], this->batch_size, this->all_size_list[i], "e");
     // printf("\n");
 
 
     for (i=1;i<this->hidden_layer_num;i++) {
         affine_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+        batchnorm_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
         relu_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
+        dropout_ret[i] = (double *)malloc(sizeof(double) * this->batch_size * this->all_size_list[i]);
 
         // printf("Affine[%d]: relu_ret[%d]->affine_ret[%d]\n", i, i-1, i);
-        affinelayer_forward(&this->layers.Affine[i], affine_ret[i], relu_ret[i-1], this->batch_size, this->all_size_list[i]);
+        if (strcmp(this->use_dropout, "true") == 0) {
+            dropout_forward(&this->layers.Dropout[i], dropout_ret[i-1], relu_ret[i-1], train_flg);
+            affinelayer_forward(&this->layers.Affine[i], affine_ret[i], dropout_ret[i-1], this->batch_size, this->all_size_list[i]);
+        } else {
+            affinelayer_forward(&this->layers.Affine[i], affine_ret[i], relu_ret[i-1], this->batch_size, this->all_size_list[i]);
+        }
         // printf("Relu[%d]: affine_ret[%d]->reluret[%d]\n", i, i, i);
-        relulayer_forward(&this->layers.Relu[i], relu_ret[i], affine_ret[i]);
+        if (strcmp(this->use_batchnorm, "true") == 0) {
+            batchnormalization_forward(&this->layers.BatchNormalization[i], batchnorm_ret[i], affine_ret[i], train_flg);
+            relulayer_forward(&this->layers.Relu[i], relu_ret[i], batchnorm_ret[i]);
+        } else {
+            relulayer_forward(&this->layers.Relu[i], relu_ret[i], affine_ret[i]);
+        }
         // printf("%d:%p %d\n", i, &this->layers.Affine[i], this->all_size_list[i]);
     }
     // printf("%d:%p %d\n", i, &this->layers.Affine[i], this->all_size_list[i]);
     // printf("Affine[%d]: relu_ret[%d]->affine_ret[%d] size: %d\n", i, i-1, i, this->all_size_list[i]);
-    affinelayer_forward(&this->layers.Affine[i], y, relu_ret[i-1], this->batch_size, this->all_size_list[i]);
+    if (strcmp(this->use_dropout, "true") == 0) {
+        dropout_forward(&this->layers.Dropout[i], dropout_ret[i-1], relu_ret[i-1], train_flg);
+        affinelayer_forward(&this->layers.Affine[i], y, dropout_ret[i-1], this->batch_size, this->all_size_list[i]);
+    } else {
+        affinelayer_forward(&this->layers.Affine[i], y, relu_ret[i-1], this->batch_size, this->all_size_list[i]);
+    }
 
     for (i=0;i<this->hidden_layer_num;i++) {
         free(affine_ret[i]);
+        free(batchnorm_ret[i]);
         free(relu_ret[i]);
+        free(dropout_ret[i]);
     }
 
     free(affine_ret);
+    free(batchnorm_ret);
     free(relu_ret);
+    free(dropout_ret);
 
     return 0;
 }
 
-int loss(MultiLayerNet *this, double *ret, double *x, double *t) {
+int loss(MultiLayerNetExtend *this, double *ret, double *x, double *t, char *train_flg) {
 
     double *y;
     y = (double *)malloc(sizeof(double) * this->batch_size * this->output_size);
 
-    predict(this, y, x);
+    predict(this, y, x, train_flg);
 
     softmaxwithlosslayer_forward(&this->layers.SoftmaxWithLoss, ret, y, t);
     // printf("softmax_forward: %f\n", *ret);
@@ -275,11 +337,12 @@ int loss(MultiLayerNet *this, double *ret, double *x, double *t) {
 //    return 0;
 //}
 //
-int gradient(MultiLayerNet *this, double *x, double *t) {
+int gradient(MultiLayerNetExtend *this, double *x, double *t) {
     // forward
     double loss_ret = 0.0;
+    char *train_flg = "true";
 
-    loss(this, &loss_ret, x, t);
+    loss(this, &loss_ret, x, t, train_flg);
 
     // backward
     int i, j;
