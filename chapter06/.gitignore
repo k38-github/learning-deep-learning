@@ -5,3 +5,4 @@ optimizer_compare_naive
 optimizer_compare_mnist
 out.txt
 weight_init_compare
+batch_norm_test

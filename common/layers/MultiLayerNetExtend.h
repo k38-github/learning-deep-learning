@@ -33,6 +33,8 @@ typedef struct MultiLayerNetExtend {
     char *use_batchnorm;
     double **gW;
     double **gb;
+    double **ggamma;
+    double **gbeta;
     double *x_batch;
     double *t_batch;
     Layers layers;

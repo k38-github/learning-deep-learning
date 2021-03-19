@@ -24,6 +24,9 @@ int batchnormalization_init(BatchNormalization *this, double *gamma, double *bet
     this->xn = (double *)malloc(sizeof(double) * col_size * row_size);
     this->std = (double *)malloc(sizeof(double) * row_size);
 
+    this->dbeta = (double *)malloc(sizeof(double) * row_size);
+    this->dgamma = (double *)malloc(sizeof(double) * row_size);
+
     this->col_size = col_size;
     this->row_size = row_size;
 
@@ -109,7 +112,7 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
             mean_function(tmp_x, &var[i], this->col_size);
         }
 
-        for (i=0;this->row_size;i++) {
+        for (i=0;i<this->row_size;i++) {
             this->std[i] = sqrt(var[i] + pow(10, -7));
         }
 
