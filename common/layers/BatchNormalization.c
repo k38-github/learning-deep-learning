@@ -95,11 +95,15 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
         tmp_xc = (double *)malloc(sizeof(double) * this->col_size * this->row_size);
 
         for (i=0;i<this->col_size*this->row_size;i++) {
-            tmp_xc[i] = pow(xc[i], 2);
+            tmp_xc[i] = pow(xc[i], 2.0);
+           //  printf("tmp_xc[%f] xc[%f] : ", tmp_xc[i], xc[i]);
         }
 
         double *var;
         var = (double *)malloc(sizeof(double) * this->row_size);
+
+        double *tmp_var;
+        tmp_var = (double *)malloc(sizeof(double) * this->col_size);
 
         double *tmp_xc_trans;
         tmp_xc_trans = (double *)malloc(sizeof(double) * this->row_size * this->col_size);
@@ -107,13 +111,13 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
 
         for (i=0;i<this->row_size;i++) {
             for (j=0;j<this->col_size;j++) {
-                tmp_x[i] = tmp_xc_trans[j+(this->col_size*i)];
+                tmp_var[i] = tmp_xc_trans[j+(this->col_size*i)];
             }
-            mean_function(tmp_x, &var[i], this->col_size);
+            mean_function(tmp_var, &var[i], this->col_size);
         }
 
         for (i=0;i<this->row_size;i++) {
-            this->std[i] = sqrt(var[i] + pow(10, -7));
+            this->std[i] = sqrt(var[i] + pow(10.0, -7.0));
         }
 
         double *broadcast_std;
@@ -150,6 +154,7 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
         free(broadcast_mu);
         free(tmp_xc);
         free(var);
+        free(tmp_var);
         free(tmp_xc_trans);
         free(broadcast_std);
 
@@ -158,8 +163,8 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
             xc[i] = x[i] - broadcast_running_mean[i];
         }
 
-       for (i=0;i<this->col_size*this->row_size;i++) {
-            xn[i] = xc[i] / sqrt(broadcast_running_var[i] + pow(10, -7));
+        for (i=0;i<this->col_size*this->row_size;i++) {
+            xn[i] = xc[i] / sqrt(broadcast_running_var[i] + pow(10.0, -7.0));
         }
     }
 
@@ -197,6 +202,8 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
 int batchnormalization_backward(BatchNormalization *this, double *dx, double *dout) {
     double *dbeta;
     double *dgamma;
+    double tmp_dbeta = 0.0;
+    double tmp_dgamma = 0.0;
 
     dbeta = (double *)malloc(sizeof(double) * this->row_size);
     dgamma = (double *)malloc(sizeof(double) * this->row_size);
@@ -214,7 +221,9 @@ int batchnormalization_backward(BatchNormalization *this, double *dx, double *do
             tmp_dout[j] = dout_trans[j+(this->col_size*i)];
         }
 
-        sum_function(tmp_dout, &dbeta[i], this->col_size);
+        sum_function(tmp_dout, &tmp_dbeta, this->col_size);
+
+        dbeta[i] = tmp_dbeta;
     }
 
     double *tmp_xn;
@@ -236,7 +245,9 @@ int batchnormalization_backward(BatchNormalization *this, double *dx, double *do
             tmp_xn_sum[j] = tmp_xn_trans[j+(this->col_size*i)];
         }
 
-        sum_function(tmp_xn_sum, &dgamma[i], this->col_size);
+        sum_function(tmp_xn_sum, &tmp_dgamma, this->col_size);
+
+        dgamma[i] = tmp_dgamma;
     }
 
     double *dxn;
