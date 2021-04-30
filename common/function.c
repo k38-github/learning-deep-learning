@@ -202,6 +202,7 @@ int argmax(double *x, int *y, int element) {
 int sum_function(double *x, double *y, int element) {
     int i;
 
+    *y = 0.0;
     for(i=0;i<element;i++) {
         *y += x[i];
     }

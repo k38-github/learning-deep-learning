@@ -20,7 +20,8 @@ int main(void) {
     char *T_TEST;
     int size[4] = {0};
     int one_hot_value = 10;
-    int data_size = 0;
+    int data_num = 0;
+    int data_size = 1000;
 
     load_mnist(&X_TRAIN, &T_TRAIN, &X_TEST, &T_TEST, size);
 
@@ -31,8 +32,8 @@ int main(void) {
     double *x_train;
     x_train = (double *)malloc(sizeof(double) * 784 * 1000);
 
-    for (data_size=0;data_size<784*1000;data_size++) {
-        x_train[data_size] = _x_train[data_size];
+    for (data_num=0;data_num<784*data_size;data_num++) {
+        x_train[data_num] = _x_train[data_num];
     }
 
     int *_t_train;
@@ -42,8 +43,8 @@ int main(void) {
     int *t_train;
     t_train = (int *)malloc(sizeof(int) * size[1] * one_hot_value);
 
-    for (data_size=0;data_size<1000;data_size++) {
-        t_train[data_size] = _t_train[data_size];
+    for (data_num=0;data_num<data_size;data_num++) {
+        t_train[data_num] = _t_train[data_num];
     }
 
     double *x_test;
@@ -54,8 +55,10 @@ int main(void) {
     t_test = (int *)malloc(sizeof(int) * size[3] * one_hot_value);
     one_hot(T_TEST, t_test, size[3]);
 
-    int iters_num = 20;
-    int train_size = 784*1000;
+    int max_epochs = 20;
+    int epoch_count = 0;
+    int iters_num = 1000;
+    int train_size = 784*data_size;
     double *sgd_train_loss;
     double *iters_num_arr;
 
@@ -129,9 +132,14 @@ int main(void) {
         char *train_flg = "false";
         loss(&multinet_extend, &sgd_loss_ret, multinet_extend.x_batch, multinet_extend.t_batch, train_flg);
 
-        if (i%100 == 0) {
+        if (i%10 == 0) {
             printf("iters_num: %d\n", i);
             printf("SGD: %f\n", sgd_loss_ret);
+
+            epoch_count++;
+            if (epoch_count >= max_epochs) {
+                break;
+            }
         }
 
         sgd_train_loss[i] = sgd_loss_ret;

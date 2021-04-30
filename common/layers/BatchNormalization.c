@@ -74,7 +74,7 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
 
         for (i=0;i<this->row_size;i++) {
             for (j=0;j<this->col_size;j++) {
-                tmp_x[i] = x_trans[j+(this->col_size*i)];
+                tmp_x[j] = x_trans[j+(this->col_size*i)];
             }
             mean_function(tmp_x, &mu[i], this->col_size);
         }
@@ -96,7 +96,7 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
 
         for (i=0;i<this->col_size*this->row_size;i++) {
             tmp_xc[i] = pow(xc[i], 2.0);
-           //  printf("tmp_xc[%f] xc[%f] : ", tmp_xc[i], xc[i]);
+            //tmp_xc[i] = xc[i] * xc[i];
         }
 
         double *var;
@@ -111,13 +111,14 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
 
         for (i=0;i<this->row_size;i++) {
             for (j=0;j<this->col_size;j++) {
-                tmp_var[i] = tmp_xc_trans[j+(this->col_size*i)];
+                tmp_var[j] = tmp_xc_trans[j+(this->col_size*i)];
             }
             mean_function(tmp_var, &var[i], this->col_size);
         }
 
         for (i=0;i<this->row_size;i++) {
             this->std[i] = sqrt(var[i] + pow(10.0, -7.0));
+            //this->std[i] = sqrt(var[i] + 0.000001);
         }
 
         double *broadcast_std;
@@ -164,7 +165,7 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
         }
 
         for (i=0;i<this->col_size*this->row_size;i++) {
-            xn[i] = xc[i] / sqrt(broadcast_running_var[i] + pow(10.0, -7.0));
+            xn[i] = xc[i] / (sqrt(broadcast_running_var[i] + pow(10.0, -7.0)));
         }
     }
 
@@ -186,7 +187,7 @@ int batchnormalization_forward(BatchNormalization *this, double *out, double *x,
     }
 
     for (i=0;i<this->col_size*this->row_size;i++) {
-        out[i] = broadcast_gamma[i] * xn[i] + this->beta[i];
+        out[i] = broadcast_gamma[i] * xn[i] + broadcast_beta[i];
     }
 
     free(xc);
@@ -359,11 +360,11 @@ int batchnormalization_backward(BatchNormalization *this, double *dx, double *do
         dx[i] = dxc[i] - broadcast_dmu[i] / this->col_size;
     }
 
-    for (i=0;i<this->col_size*this->row_size;i++) {
+    for (i=0;i<this->row_size;i++) {
         this->dgamma[i] = dgamma[i];
     }
 
-    for (i=0;i<this->col_size*this->row_size;i++) {
+    for (i=0;i<this->row_size;i++) {
         this->dbeta[i] = dbeta[i];
     }
 
